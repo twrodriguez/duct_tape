@@ -39,15 +39,15 @@ else
   [[ -n "$my_arch" ]] || my_arch=`uname -m 2> /dev/null`
 fi
 
-if [[ "$my_arch" =~ sparc ]]; then
+if [[ "$arch_output" =~ sparc ]]; then
   my_arch_family="sparc"
-elif [[ "$my_arch" =~ 64$ ]]; then
+elif [[ "$arch_output" =~ 64$ ]]; then
   my_arch_family="x86_64"
-elif [[ "$my_arch" =~ 86$ ]]; then
+elif [[ "$arch_output" =~ 86$ ]]; then
   my_arch_family="i386"
-elif [[ "$my_arch" =~ ^ppc || "$my_arch" =~ powerpc ]]; then
+elif [[ "$arch_output" =~ ^ppc || "$arch_output" =~ powerpc ]]; then
   my_arch_family="ppc"
-elif [[ "$my_arch" =~ arm ]]; then
+elif [[ "$arch_output" =~ arm ]]; then
   my_arch_family="arm"
 fi
 

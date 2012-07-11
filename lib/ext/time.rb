@@ -1,6 +1,6 @@
 class Time
   def self.duration(num, usecs=false)
-    raise TypeError.new("can't convert #{num.class} into Numeric") unless num.is_a?(Numeric)
+    type_assert(num, Numeric)
     secs  = num.to_i
     mins  = secs / 60
     hours = mins / 60

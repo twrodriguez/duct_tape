@@ -20,9 +20,7 @@ class Hash
 
   def deep_merge!(second)
     return nil unless second
-    unless Hash === second
-      raise TypeError.new("can't convert #{second.class} into #{self.class}")
-    end
+    type_assert(second, Hash)
     second.each_pair do |k,v|
       if self[k].is_a?(Array) and second[k].is_a?(Array)
         self[k].deep_merge!(second[k])
@@ -47,7 +45,7 @@ class Hash
     if ::RUBY_VERSION >= "1.9" && block_given?
       super
     else
-      raise TypeError.new("can't convert #{max_length.class} into Integer") unless Integer === max_length
+      type_assert(max_length, Integer)
       ret = []
       ary = to_a
       (self.length.to_f / max_length.to_i).ceil.times do |i|

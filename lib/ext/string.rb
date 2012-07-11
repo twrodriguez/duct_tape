@@ -18,7 +18,7 @@ class String
   end
 
   def chunk(max_length)
-    raise TypeError.new("can't convert #{max_length.class} into Integer") unless Integer === max_length
+    type_assert(max_length, Integer)
     split(/(.{#{max_length.to_i}})/).reject { |s| s.empty? }
   end
 
@@ -47,7 +47,7 @@ class String
   end
 
   # Transform a string of format HH:MM into a float representing an hour
-  def hour_to_float(separator=':')
+  def hour_to_f(separator=':')
     m, s = self.split(separator).map(&:to_f)
     m + (s / 60)
   end
