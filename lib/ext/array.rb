@@ -206,7 +206,7 @@ class Array
   # Return the variance of self
   def variance(population=false)
     m = mean.to_f
-    map { |v| (v - m).square }.sum / (size - (population ? 0 : 1))
+    map { |v| (v - m) ** 2 }.sum / (size - (population ? 0 : 1))
   end
   
   # Return the (sample|population) standard deviation of self
