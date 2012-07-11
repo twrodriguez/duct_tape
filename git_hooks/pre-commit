@@ -231,7 +231,6 @@ if [[ "$REQUIRED_FILES" =~ "Gemfile" ]]; then
 
   [[ ! -e "Gemfile.lock" ]] && lod_exit "Gemfile.lock not present. Aborting commit"
   [[ `stat $stat_flag %Z Gemfile.lock` -ne $old_mod_time ]] && lod_exit "Gemfile.lock updated. Please re-add 'Gemfile.lock' to your commit"
-  [[ "$commited_files" =~ "Gemfile.lock" ]] || lod_exit "Gemfile.lock not being commited. Please add 'Gemfile.lock' to your commit"
 fi
 
 #
