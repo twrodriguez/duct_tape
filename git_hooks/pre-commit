@@ -64,17 +64,32 @@ REQUIRED_FILES="Gemfile README.md VERSION .gitignore Rakefile LICENSE"
 
 whitespace=""
 echo "Checking for syntax errors..."
-commited_files=`git diff-index --name-only HEAD --`
-for FILE in "$commited_files"; do
-  if test -f $FILE; then
+commited_files=`git diff-index --name-only HEAD -- 2>&1`
+exit_status=$?
+if [[ "exit_status" -ne 0 && "$commited_files" == "fatal: bad revision 'HEAD'" ]]; then
+  commited_files=`find "$git_root" -type f | grep -v ".git/"`
+fi
+for FILE in $commited_files; do
+  if test -f "$FILE"; then
+    filetype=`file -b $FILE`
     if [[ -n "$whitespace_modifation" ]]; then
-      filetype=`file -b $FILE`
       if [[ "$filetype" =~ "text" ]]; then
         if [[ -n `grep "\\s\\s*$" $FILE` ]]; then whitespace="$whitespace $FILE"; fi
         # Remove trailing whitespace
         sed -i "s/\\s\\s*$//g" $FILE
         # Remove tabs
         sed -i "s/\t/  /g" $FILE
+      fi
+    fi
+
+    # If a file is a bash script, check for syntax errors using bash
+    if [[ "$FILE" =~ .*\.sh$ || "$filetype" =~ "shell script" ]]; then
+      if [[ "$fail" -eq 0 || -z "$fail" ]]; then
+        bash -n "$FILE" 1> /dev/null; fail=$?
+        if [[ "$fail" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
+      else
+        bash -n "$FILE" 1> /dev/null
+        if [[ "$?" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
       fi
     fi
 
@@ -159,8 +174,7 @@ echo "Syntax check complete."
 #
 # Built-in git checks
 #
-git diff-index --check HEAD --
-
+git diff-index --check HEAD -- 2> /dev/null
 
 #
 # Check for Syntax Errors
@@ -171,7 +185,7 @@ git diff-index --check HEAD --
 # Check for warnings
 #
 fail=0
-for FILE in `git diff-index --name-only HEAD --` ; do
+for FILE in $commited_files ; do
   if test -e $FILE; then
     # If a file is ruby, check for syntax errors
     if [[ -n `find $FILE -regex ".*\.rb$"` ]]; then
@@ -217,7 +231,6 @@ if [[ "$REQUIRED_FILES" =~ "Gemfile" ]]; then
 
   [[ ! -e "Gemfile.lock" ]] && lod_exit "Gemfile.lock not present. Aborting commit"
   [[ `stat $stat_flag %Z Gemfile.lock` -ne $old_mod_time ]] && lod_exit "Gemfile.lock updated. Please re-add 'Gemfile.lock' to your commit"
-  [[ "$commited_files" =~ "Gemfile.lock" ]] || lod_exit "Gemfile.lock not being commited. Please add 'Gemfile.lock' to your commit"
 fi
 
 #
