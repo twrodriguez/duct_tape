@@ -64,7 +64,7 @@ class Array
   end
 
   # Returns a new Array rejecting objects based on if the block-mapped
-  # values are unique 
+  # values are unique
   def uniq_by(&block)
     ret = dup
     ret.uniq_by!(&block)
@@ -171,24 +171,24 @@ class Array
   def sum
     flatten.compact.inject(:+)
   end
-  
+
   # Calculate squares of each item
   def squares
     map { |i| i ** 2 }
   end
-  
+
   # Return a new array containing the rank of each value
   # Ex: [1, 2, 2, 8, 9] #=> [0.0, 1.5, 1.5, 3.0, 4.0]
   def ranks(already_sorted=false)
     a = already_sorted ? self : sort
     map { |i| (a.index(i) + a.rindex(i)) / 2.0 }
   end
-  
+
   # Calculate square roots of each item
   def sqrts
     map { |i| Math.sqrt(i) }
   end
-  
+
   # Calculate the arithmetic mean of the array, as long as all objects respond to / operator
   def mean
     a = flatten.compact
@@ -197,18 +197,18 @@ class Array
   alias_method :average, :mean
 
   # TODO - Geometric mean
-  
+
   # Calculate the number of occurences for each element of the array
   def frequencies
     inject(Hash.new(0)) { |h,v| h[v] += 1; h }
   end
-  
+
   # Return the variance of self
   def variance(population=false)
     m = mean.to_f
     map { |v| (v - m) ** 2 }.sum / (size - (population ? 0 : 1))
   end
-  
+
   # Return the (sample|population) standard deviation of self
   # If population is set to true, then we consider the dataset as the complete population
   # Else, we consider the dataset as a sample, so we use the sample standard deviation (size - 1)
@@ -216,7 +216,7 @@ class Array
     size > 1 ? Math.sqrt(variance(population)) : 0.0
   end
   alias_method :std_dev, :standard_deviation
-  
+
   # Return the median of sorted self
   def median(already_sorted=false)
     return nil if empty?
@@ -225,7 +225,7 @@ class Array
     size % 2 == 1 ? a[m_pos] : (a[m_pos-1] + a[m_pos]).to_f / 2
   end
   alias_method :second_quartile, :median
-  
+
   # Return the first quartile of self
   def first_quartile(already_sorted=false)
     return nil if size < 4
@@ -233,7 +233,7 @@ class Array
     a[0..((size / 2) - 1)].median(true)
   end
   alias_method :lower_quartile, :first_quartile
-  
+
   # Return the last quartile of self
   def last_quartile(already_sorted=false)
     return nil if size < 4
@@ -241,45 +241,45 @@ class Array
     a[((size / 2) + 1)..-1].median(true)
   end
   alias_method :upper_quartile, :last_quartile
-  
+
   # Return an array containing the first, the second and the last quartile of self
   def quartiles(already_sorted=false)
     a = already_sorted ? self : sort
     [a.first_quartile(true), a.median(true), a.last_quartile(true)]
   end
-  
+
   # Calculate the interquartile range of self
   def interquartile_range(already_sorted=false)
     return nil if size < 4
     a = already_sorted ? self : sort
     a.last_quartile - a.first_quartile
   end
-  
+
   # Return a hash of modes with their corresponding occurences
   def modes
     fre = frequencies
     max = fre.values.max
     fre.select { |k, f| f == max }
   end
-  
+
   # Return the midrange of sorted self
   def midrange(already_sorted=false)
     return nil if empty?
     a = already_sorted ? self : sort
     (a.first + a.last) / 2.0
   end
-  
+
   # Return the statistical range of sorted self
   def statistical_range(already_sorted=false)
     return nil if empty?
     a = already_sorted ? self : sort
     (a.last - a.first)
   end
-  
+
   # Return all statistics from self in a simple hash
   def statistics(already_sorted=false)
     sorted = sort
-    
+
     {
       :first => self.first,
       :last => self.last,
@@ -296,7 +296,7 @@ class Array
       :population_variance => self.variance(true),
       :population_standard_deviation => self.standard_deviation(true),
       :modes => self.modes,
-      
+
       # Need to be sorted...
       :ranks => sorted.ranks(true),
       :median => sorted.median(true),

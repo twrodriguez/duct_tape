@@ -3,6 +3,7 @@ require 'rake'
 
 begin
   require 'jeweler'
+  version = File.read(File.expand_path("../VERSION",__FILE__)).strip
   Jeweler::Tasks.new do |gemspec|
     gemspec.name = "duct_tape"
     gemspec.summary = "A bunch of useful patches for core classes"
@@ -14,6 +15,10 @@ begin
     gemspec.add_development_dependency('bundler')
     gemspec.add_development_dependency('rspec')
     gemspec.add_dependency('facets')
+    gemspec.add_dependency('algorithms')
+    gemspec.required_ruby_version = '>= 1.8.7'
+    gemspec.license = 'Simplified BSD'
+    gemspec.version = version
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

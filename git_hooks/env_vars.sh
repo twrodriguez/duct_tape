@@ -41,12 +41,12 @@ fi
 
 if [[ "$my_arch" =~ sparc ]]; then
   my_arch_family="sparc"
+elif [[ "$my_arch" =~ ^ppc || "$my_arch" =~ powerpc ]]; then
+  my_arch_family="powerpc"
 elif [[ "$my_arch" =~ 64$ ]]; then
   my_arch_family="x86_64"
 elif [[ "$my_arch" =~ 86$ ]]; then
   my_arch_family="i386"
-elif [[ "$my_arch" =~ ^ppc || "$my_arch" =~ powerpc ]]; then
-  my_arch_family="ppc"
 elif [[ "$my_arch" =~ arm ]]; then
   my_arch_family="arm"
 fi
@@ -59,10 +59,11 @@ if [[ -z `echo "$PATH" | grep "/usr/local/bin"` ]]; then
 fi
 if [[ "$PATH" =~ "rvm/bin" ]]; then
   if [[ `whoami` == "root" ]]; then
-    export PATH=$PATH:/usr/local/rvm/bin # Add RVM to PATH for scripting
+    rvm_home=/usr/local/rvm
   else
-    export PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+    rvm_home=$HOME/.rvm
   fi
+  export PATH=$PATH:$rvm_home/bin # Add RVM to PATH for scripting
 fi
 
 if [[ "$my_platform" == "linux" ]]; then

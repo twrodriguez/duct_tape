@@ -91,4 +91,18 @@ module Kernel
     else;          :unknown
     end
   end
+
+  # Gems that are required only when a module or class is used
+  def required_if_used(*args)
+    unless @required_gems
+      [:included, :extended, :inherited].each do |method_name|
+        define_method(method_name) do |klass|
+          super if defined?(super)
+          @required_gems.each { |gem| require gem.to_s }
+        end
+      end
+    end
+    @required_gems ||= []
+    @required_gems |= args
+  end
 end
