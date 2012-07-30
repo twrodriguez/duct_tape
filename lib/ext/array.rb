@@ -145,9 +145,9 @@ class Array
 
   # Chunks an array into segments of maximum length
   # [1,2,3,4,5,6,7,8,9,10].chunk(3) #=> [[1,2,3], [4,5,6], [7,8,9], [10]]
-  def chunk(max_length, &block)
+  def chunk(max_length=nil, &block)
     if ::RUBY_VERSION >= "1.9" && block_given?
-      super
+      super(&block)
     else
       type_assert(max_length, Integer)
       ret = []
@@ -170,6 +170,10 @@ class Array
   # Add each object of the array to each other in order to get the sum, as long as all objects respond to + operator
   def sum
     flatten.compact.inject(:+)
+  end
+
+  def product
+    flatten.compact.inject(:*)
   end
 
   # Calculate squares of each item

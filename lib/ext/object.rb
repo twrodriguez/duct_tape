@@ -5,7 +5,7 @@ class Object
 
   def just_my_methods
     ret = self.methods
-    (self.class.ancestors - self.class).each { |klass|
+    (self.class.ancestors - [self.class]).each { |klass|
       if Module === klass
         ret -= klass.methods
       elsif Class === klass
