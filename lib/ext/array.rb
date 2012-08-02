@@ -149,12 +149,7 @@ class Array
     if ::RUBY_VERSION >= "1.9" && block_given?
       super(&block)
     else
-      type_assert(max_length, Integer)
-      ret = []
-      (self.length.to_f / max_length.to_i).ceil.times do |i|
-        ret << self[(max_length*i)...(max_length*(i+1))]
-      end
-      ret
+      each_slice(max_length).to_a
     end
   end
 

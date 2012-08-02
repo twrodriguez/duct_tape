@@ -41,17 +41,11 @@ class Hash
 
   alias_method :reject_keys, :-
 
-  def chunk(max_length)
+  def chunk(max_length=nil, &block)
     if ::RUBY_VERSION >= "1.9" && block_given?
-      super
+      super(&block)
     else
-      type_assert(max_length, Integer)
-      ret = []
-      ary = to_a
-      (self.length.to_f / max_length.to_i).ceil.times do |i|
-        ret << ary[(max_length*i)...(max_length*(i+1))].to_h
-      end
-      ret
+      each_slice(max_length).to_a.map! { |ary| ary.to_h }
     end
   end
 
