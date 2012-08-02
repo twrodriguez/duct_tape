@@ -33,46 +33,46 @@ Array, TrueClass, FalseClass, DateTime, Dir, File, Hash, Kernel, Numeric, Object
 Range, Regexp, String, and Time have patches in duct_tape. Here are a few examples:
 
     # Array
-    ["a","b","c"].to_h                      #=> {0=>"a", 1=>"b", 2=>"c"}
-    [[1,2], [3,4]].to_h                     #=> {1=>2, 3=>4}
-    [{1 => 2}, {3 => 4}].to_h               #=> {1=>2, 3=>4}
+    ["a","b","c"].to_h                        #=> {0=>"a", 1=>"b", 2=>"c"}
+    [[1,2], [3,4]].to_h                       #=> {1=>2, 3=>4}
+    [{1 => 2}, {3 => 4}].to_h                 #=> {1=>2, 3=>4}
     [{"name" => 1, "value" => 2},
-     {"name" => 3, "value" => 4}].to_h      #=> {1=>2, 3=>4}
+     {"name" => 3, "value" => 4}].to_h        #=> {1=>2, 3=>4}
     [{:x => 1, :y => 2},
-     {:x => 3, :y => 4}].to_h(:x, :y)       #=> {1=>2, 3=>4}
-    [{1 => 2, 3 => 4}, {1 => 4}].to_h       #=> {1=>[2, 4], 3=>4}
-    [1,2,3,4,5,6,7].chunk(3)                #=> [[1, 2, 3], [4, 5, 6], [7]]
-    [1,2] * [3,4]                           #=> [[1, 3], [1, 4], [2, 3], [2, 4]]
-    [0,1] ** 0                              #=> []
-    [0,1] ** 1                              #=> [[0], [1]]
-    [0,1] ** 2                              #=> [[0, 0], [0, 1], [1, 0], [1, 1]]
-    [1,1,1].unanimous?                      #=> true
-    [1,1,2].unanimous?                      #=> false
-    [1,1,1].unanimous?(1)                   #=> true
-    [1,1,1].unanimous?(2)                   #=> false
-    [1,1,1].unanimous? { |i| i != 2 }       #=> true
-    [1,1,1].unanimous?(4) { |i| i + 3 }     #=> true
+     {:x => 3, :y => 4}].to_h(:x, :y)         #=> {1=>2, 3=>4}
+    [{1 => 2, 3 => 4}, {1 => 4}].to_h         #=> {1=>[2, 4], 3=>4}
+    [1,2,3,4,5,6,7].chunk(3)                  #=> [[1, 2, 3], [4, 5, 6], [7]]
+    [1,2] * [3,4]                             #=> [[1, 3], [1, 4], [2, 3], [2, 4]]
+    [0,1] ** 0                                #=> []
+    [0,1] ** 1                                #=> [[0], [1]]
+    [0,1] ** 2                                #=> [[0, 0], [0, 1], [1, 0], [1, 1]]
+    [1,1,1].unanimous?                        #=> true
+    [1,1,2].unanimous?                        #=> false
+    [1,1,1].unanimous?(1)                     #=> true
+    [1,1,1].unanimous?(2)                     #=> false
+    [1,1,1].unanimous? { |i| i != 2 }         #=> true
+    [1,1,1].unanimous?(4) { |i| i + 3 }       #=> true
 
     # Range
-    (1..7).chunk(3)                         #=> [[1, 2, 3], [4, 5, 6], [7]]
+    (1..7).chunk(3)                           #=> [[1, 2, 3], [4, 5, 6], [7]]
 
     # Hash
-    {1=>{2=>[3]}}.deep_merge({1=>{2=>[4]}}) #=> {1=>{2=>[3, 4], 7=>8}}
-    {1=>2, 2=>3, 3=>4, 4=>5}.chunk(2)       #=> [{1=>2, 2=>3}, {3=>4, 4=>5}]
+    {1=>{2=>[3]}}.deep_merge({1=>{2=>[4]}})   #=> {1=>{2=>[3, 4]}}
+    {1=>2, 2=>3, 3=>4, 4=>5}.chunk(2)         #=> [{1=>2, 2=>3}, {3=>4, 4=>5}]
 
     # Regexp
-    /ll/.inverse                            #=> /\A(?:(?!ll).)+\z/
-    "hello" =~ /ll/                         #=> 2
-    "hello" =~ /ll/.inverse                 #=> nil
-    "hello" =~ /ll/.inverse.inverse         #=> 2
+    /ll/.inverse                              #=> /\A(?:(?!ll).)+\z/
+    "hello" =~ /ll/                           #=> 2
+    "hello" =~ /ll/.inverse                   #=> nil
+    "hello" =~ /ll/.inverse.inverse           #=> 2
 
     # String
-    "lorem ipsum".word_wrap(3)              #=> "lor\nem\nips\num\n"
-    "1234567890".chunk(3)                   #=> ["123", "456", "789", "0"]
-    "%{x} %{y}" % {:x => 3, :y => 4}        #=> "3 4"
+    "lorem ipsum".word_wrap(3)                #=> "lor\nem\nips\num\n"
+    "1234567890".chunk(3)                     #=> ["123", "456", "789", "0"]
+    "%{x} %{y}" % {:x => 3, :y => 4}          #=> "3 4"
 
     # Time
-    Time.duration(61621)                    #=> "17 hours, 7 minutes and 1 second"
+    Time.duration(61621)                      #=> "17 hours, 7 minutes and 1 second"
 
 AutoassociativeArray
 --------------------
@@ -83,18 +83,18 @@ bidirectional hash. It also adds partial matching capabilities, though the runti
 of partial matches can explode if abused in the worst case.
 
     aa = Containers::AutoassociativeArray.new
-    aa << [1,2,3] << [2,3,4] << [3,4,5]     #=> [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
-    aa[1]                                   #=> [1, 2, 3]
-    aa[2]                                   #=> [[1, 2, 3], [2, 3, 4]]
-    aa[3]                                   #=> [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
-    aa[4]                                   #=> [[2, 3, 4], [3, 4, 5]]
-    aa[5]                                   #=> [3, 4, 5]
-    aa[2,3]                                 #=> [[1, 2, 3], [2, 3, 4]]
-    aa[2,3,4]                               #=> [2, 3, 4]
-    aa[2,5]                                 #=> []
-    aa.partial_match(1,4)                   #=> [1, 2, 3]
-    aa.partial_match(1,4,5)                 #=> [3, 4, 5]
-    aa.partial_match(2,5)                   #=> [[1, 2, 3], [2, 3, 4]]
+    aa << [1,2,3] << [2,3,4] << [3,4,5]       #=> [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+    aa[1]                                     #=> [1, 2, 3]
+    aa[2]                                     #=> [[1, 2, 3], [2, 3, 4]]
+    aa[3]                                     #=> [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+    aa[4]                                     #=> [[2, 3, 4], [3, 4, 5]]
+    aa[5]                                     #=> [3, 4, 5]
+    aa[2,3]                                   #=> [[1, 2, 3], [2, 3, 4]]
+    aa[2,3,4]                                 #=> [2, 3, 4]
+    aa[2,5]                                   #=> []
+    aa.partial_match(1,4)                     #=> [1, 2, 3]
+    aa.partial_match(1,4,5)                   #=> [3, 4, 5]
+    aa.partial_match(2,5)                     #=> [[1, 2, 3], [2, 3, 4]]
 
 Partial matches return the set of arrays with the most matched elements from the
 query.
