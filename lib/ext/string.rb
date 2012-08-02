@@ -9,7 +9,7 @@ class String
 
   def word_wrap(width=(tty_width || 80).to_i)
     ret = dup
-    ret.word_wrap!
+    ret.word_wrap!(width)
     ret
   end
 
@@ -31,8 +31,10 @@ class String
           raise KeyError.new("key{#{$1}} not found")
         end
       end
-    else
+    elsif arg.is_a?(Array)
       return Kernel.sprintf(self, *arg)
+    else
+      return Kernel.sprintf(self, arg)
     end
   end
 

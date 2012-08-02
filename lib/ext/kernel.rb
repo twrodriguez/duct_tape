@@ -1,3 +1,5 @@
+require 'rbconfig'
+
 module Kernel
   private
 
@@ -82,13 +84,69 @@ module Kernel
 
   alias_method :silence_warnings, :disable_warnings
 
-  # Detect the platform we're running on.
-  def detect_platform
-    case RUBY_PLATFORM.downcase
-    when /darwin/; :mac
-    when /mswin/;  :windows
-    when /linux/;  :linux
-    else;          :unknown
+  # Detect the OS we're running on.
+  def detect_os
+    case ::RbConfig::CONFIG['host_os'].downcase
+    when /darwin/;      "mac"
+    when /mswin|mingw/; "windows"
+    when /linux/;       "linux"
+    end
+  end
+
+  # Detect the interpreter we're running on.
+  def detect_interpreter
+    var = ""
+    if ::Object::const_defined?("RUBY_ENGINE")
+      var = ::Object::RUBY_ENGINE.downcase
+    else
+      var = ::RbConfig::CONFIG['RUBY_INSTALL_NAME'].downcase
+    end
+    # TODO - MacRuby
+    case var
+    when /jruby/;     "jruby"
+    when /rbx/;       "rubinius"
+    when /maglev/;    "maglev"
+    when /ir/;        "ironruby"
+    when "ruby";
+      if GC.respond_to?(:copy_on_write_friendly=) && RUBY_VERSION < "1.9"
+                      "ree"
+      elsif var.repond_to?(:shortest_abbreviation) && RUBY_VERSION >= "1.9"
+                      "goruby"
+      else
+                      "mri"
+      end
+    end
+  end
+
+  # Detect the Language we're running on.
+  def detect_interpreter_language
+    case detect_interpreter
+    when "jruby";           "java"
+    when "rubinius";        "c++"
+    when "maglev";          "smalltalk"
+    when "ironruby";        ".net"
+    when /ree|goruby|mri/;  "c"
+    end
+  end
+
+  # Detect the most likely candidate for a public-facing IPv4 Address
+  def detect_reachable_ip
+    if detect_os == "windows"
+      output = `ipconfig`
+      ip_regex = /IPv4.*?([0-9]+(?:\.[0-9]+){3})/i
+      gateway_regex = /Gateway[^0-9]*([0-9]+(?:\.[0-9]+){3})?/i
+      possible_ips = output.grep(ip_regex).zip(output.grep(gateway_regex))
+      possible_ips.map! do |ip,gateway|
+        [ip.match(ip_regex)[1], gateway.match(gateway_regex)[1]]
+      end
+      possible_ips.reject! { |ip,gateway| ip == "127.0.0.1" || gateway.nil? }
+      return possible_ips[0][0]
+    elsif ENV['SSH_CONNECTION']
+      return ENV['SSH_CONNECTION'].split(/\s+/)[-2]
+    else
+      possible_ips = `ifconfig | grep -o "inet addr:[0-9\.]*" | grep -o "[0-9\.]*$"`.split(/\n/)
+      possible_ips.reject! { |ip| ip == "127.0.0.1" }
+      return possible_ips.first
     end
   end
 

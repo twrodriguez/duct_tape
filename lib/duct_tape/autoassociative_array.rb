@@ -61,6 +61,19 @@ module Containers
       @hash.clear
       @values.clear
       @columns.clear
+      self
+    end
+
+    def inspect
+      @values.inspect
+    end
+
+    def to_s
+      @values.to_s
+    end
+
+    def <<(ary)
+      insert(*ary)
     end
 
     private
