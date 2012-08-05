@@ -33,7 +33,8 @@ module Kernel
     raise NotImplementedError.new("Method `#{calling_method}' has not been implemented")
   end
 
-  def automatic_require(full_path, progress=nil)
+  def automatic_require(full_path)
+    # TODO - memorize order to make future iterations faster
     some_not_included = true
     files = Dir[File.join(File.expand_path(full_path), "**", "*.rb")]
     retry_loop = 0
@@ -47,7 +48,7 @@ module Kernel
         end
       rescue NameError => e
         last_err = e
-        raise unless "#{e}" =~ /uninitialized constant/i
+        raise unless "#{e}" =~ /uninitialized constant|undefined method/i
         some_not_included = true
         files.push(files.shift)
       end

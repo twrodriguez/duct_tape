@@ -10,15 +10,19 @@ class Array
   def deep_merge!(second)
     return nil unless second
     type_assert(second, Array)
+    changed = nil
     second.each_index do |k|
       if self[k].is_a?(Array) and second[k].is_a?(Array)
-        self[k].deep_merge!(second[k])
+        changed |= true if self[k].deep_merge!(second[k])
       elsif self[k].is_a?(Hash) and second[k].is_a?(Hash)
-        self[k].deep_merge!(second[k])
-      else
-        self << second[k] if exclude?(second[k])
+        changed |= true if self[k].deep_merge!(second[k])
+      elsif exclude?(second[k])
+        self << second[k]
+        changed |= true
       end
     end
+    return nil unless changed
+    self
   end
 
   # 3 Forms:
@@ -71,8 +75,19 @@ class Array
     ret
   end
 
-  # 3 Forms:
-  # TODO
+  # 1st Form:
+  # [1,1,1].unanimous?                          #=> true
+  # [1,1,2].unanimous?                          #=> false
+  #
+  # 2nd Form:
+  # [1,1,1].unanimous?(1)                       #=> true
+  # [1,1,1].unanimous?(2)                       #=> false
+  #
+  # 3rd Form:
+  # [1,1,1].unanimous? { |i| i == 2 }           #=> true
+  #
+  # 4th Form:
+  # [1,3,5].unanimous?(true) { |i| i % 2 == 1 } #=> true
   def unanimous?(arg=nil, &block)
     ret = true
     cmp = (arg.nil? ? (block_given? ? block[first] : first) : arg)
@@ -90,6 +105,8 @@ class Array
   # [{1 => 2}, {3 => 4}].to_h           #=> {1=>2, 3=>4}
   # [{"name" => 1, "value" => 2},
   #  {"name" => 3, "value" => 4}].to_h  #=> {1=>2, 3=>4}
+  # [{:x => 1, :y => 2},
+  #  {:x => 3, :y => 4}].to_h(:x, :y)   #=> {1=>2, 3=>4}
   # [{1 => 2, 3 => 4}, {1 => 4}].to_h   #=> {1=>[2, 4], 3=>4}
   def to_h(name_key="name", value_key="value")
     #raise "Elements are not unique!" unless self == uniq
@@ -142,6 +159,7 @@ class Array
   def map_to_h(&block)
     [self, map(&block)].transpose.to_h
   end
+  alias_method :map_to_hash, :map_to_h
 
   # Chunks an array into segments of maximum length
   # [1,2,3,4,5,6,7,8,9,10].chunk(3) #=> [[1,2,3], [4,5,6], [7,8,9], [10]]

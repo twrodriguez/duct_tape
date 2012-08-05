@@ -15,8 +15,8 @@ Require with rubygems.
     require 'rubygems'
     require 'duct_tape'
 
-As duct_tape also includes the excellent [facets](https://github.com/rubyworks/facets)
-and [algorithms](https://github.com/kanwei/algorithms) gems, the core classes become
+Because duct_tape requires the excellent [facets](https://github.com/rubyworks/facets)
+and [algorithms](https://github.com/kanwei/algorithms) gems, the core classes have become
 much more malleable. Any overridden methods have maintained their original functionality.
 
 Requirements
@@ -61,10 +61,10 @@ Range, Regexp, String, and Time have patches in duct_tape. Here are a few exampl
     {1=>2, 2=>3, 3=>4, 4=>5}.chunk(2)         #=> [{1=>2, 2=>3}, {3=>4, 4=>5}]
 
     # Regexp
-    /ll/.inverse                              #=> /\A(?:(?!ll).)+\z/
+    /ll/.invert                               #=> /\A(?:(?!ll).)+\z/
     "hello" =~ /ll/                           #=> 2
-    "hello" =~ /ll/.inverse                   #=> nil
-    "hello" =~ /ll/.inverse.inverse           #=> 2
+    "hello" =~ /ll/.invert                    #=> nil
+    "hello" =~ /ll/.invert.invert             #=> 2
 
     # String
     "lorem ipsum".word_wrap(3)                #=> "lor\nem\nips\num\n"

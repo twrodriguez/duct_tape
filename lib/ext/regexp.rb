@@ -1,5 +1,5 @@
 class Regexp
-  def inverse
+  def invert
     if @inverse
       %r{#{@inverse}}
     else
@@ -8,4 +8,5 @@ class Regexp
       ret
     end
   end
+  alias_method :inverse, :invert
 end

@@ -1,11 +1,11 @@
 class Numeric
-  def years; days * 365; end
-  def weeks; days * 7; end
-  def days; hours * 24; end
-  def hours; minutes * 60; end
-  def minutes; self * 60; end
-  def seconds; self; end;
-  def mseconds; self / 1000.0; end;
+  def years;    self * 31536000;  end
+  def weeks;    self * 604800;    end
+  def days;     self * 86400;     end
+  def hours;    self * 3600;      end
+  def minutes;  self * 60;        end
+  def seconds;  self;             end
+  def mseconds; self / 1000.0;    end
   def useconds; self / 1000000.0; end
 
   alias_method :year, :years
@@ -17,24 +17,28 @@ class Numeric
   alias_method :msecond, :mseconds
   alias_method :usecond, :useconds
 
-  def pb; tb * 1024; end
-  def tb; gb * 1024; end
-  def gb; mb * 1024; end
-  def mb; kb * 1024; end
-  def kb; self * 1024; end
+  def eb; self * 1152921504606846976; end
+  def pb; self * 1125899906842624;    end
+  def tb; self * 1099511627776;       end
+  def gb; self * 1073741824;          end
+  def mb; self * 1048576;             end
+  def kb; self * 1024;                end
 
+  alias_method :EB, :eb
   alias_method :PB, :pb
   alias_method :TB, :tb
   alias_method :GB, :gb
   alias_method :MB, :mb
   alias_method :KB, :kb
 
+  alias_method :exabytes,  :eb
   alias_method :petabytes, :pb
   alias_method :terabytes, :tb
   alias_method :gigabytes, :gb
   alias_method :megabytes, :mb
   alias_method :kilobytes, :kb
 
+  alias_method :exabyte,  :eb
   alias_method :petabyte, :pb
   alias_method :terabyte, :tb
   alias_method :gigabyte, :gb
@@ -42,20 +46,13 @@ class Numeric
   alias_method :kilobyte, :kb
 
   # Convert to degrees
-  def rad_to_deg
+  def to_degrees
     self * Math::PI / 180
   end
 
   # Convert to radians
-  def deg_to_rad
+  def to_radians
     self * 180 / Math::PI
-  end
-
-  #Transform self to a string formatted time (HH:MM) Ex: 14.5 => “14:30“
-  def hour_to_s(delimiter=':')
-    hour  = self.to_i
-    min   = "%02d" % (self.abs * 60 % 60).to_i
-    "#{hour}#{delimiter}#{min}"
   end
 
   # Return the square root of self
