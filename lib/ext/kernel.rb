@@ -145,7 +145,7 @@ module Kernel
     elsif ENV['SSH_CONNECTION']
       return ENV['SSH_CONNECTION'].split(/\s+/)[-2]
     else
-      possible_ips = `ifconfig | grep -o "inet addr:[0-9\.]*" | grep -o "[0-9\.]*$"`.split(/\n/)
+      possible_ips = `ifconfig | grep -o "inet \(addr:\)\?[0-9\.]*" | grep -o "[0-9\.]*$"`.split(/\n/)
       possible_ips.reject! { |ip| ip == "127.0.0.1" }
       return possible_ips.first
     end
