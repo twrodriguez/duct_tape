@@ -92,8 +92,11 @@ of partial matches can explode if abused in the worst case.
     aa[2,3]                                   #=> [[1, 2, 3], [2, 3, 4]]
     aa[2,3,4]                                 #=> [2, 3, 4]
     aa[2,5]                                   #=> []
-    aa.partial_match(1,4)                     #=> [1, 2, 3]
+    aa.partial_match(1,4)                     #=> [[2, 3, 4], [3, 4, 5]]
+    aa.partial_match(1,5)                     #=> [[1, 2, 3], [3, 4, 5]]
+    aa.partial_match(1,3,5)                   #=> [[1, 2, 3], [3, 4, 5]]
     aa.partial_match(1,4,5)                   #=> [3, 4, 5]
+    aa.partial_match(2,4)                     #=> [2, 3, 4]
     aa.partial_match(2,5)                     #=> [[1, 2, 3], [2, 3, 4]]
 
 Partial matches return the set of arrays with the most matched elements from the

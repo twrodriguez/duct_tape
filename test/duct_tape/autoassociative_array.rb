@@ -32,6 +32,27 @@ describe Containers::AutoassociativeArray, "#partial_match" do
   it "remains unchanged" do
     # TODO
   end
+
+  it "returns the matches with the most query matches" do
+    aa = Containers::AutoassociativeArray.new
+    aa << [1,2,3] << [2,3,4] << [3,4,5]
+    aa.partial_match(1,4,5).should eq([3,4,5])
+  end
+
+  it "returns all of the matches with the most query matches" do
+    aa = Containers::AutoassociativeArray.new
+    aa << [1,2,3] << [2,3,4] << [3,4,5]
+    aa.partial_match(1,5).should eq([[1,2,3], [3,4,5]])
+    aa.partial_match(1,3,5).should eq([[1,2,3], [3,4,5]])
+    aa.partial_match(2,4).should eq([2,3,4])
+  end
+
+  it "returns the matches with the most query matches with the most matches" do
+    aa = Containers::AutoassociativeArray.new
+    aa << [1,2,3] << [2,3,4] << [3,4,5]
+    aa.partial_match(1,4).should eq([[2,3,4], [3,4,5]])
+    aa.partial_match(2,5).should eq([[1,2,3], [2,3,4]])
+  end
 end
 
 #
@@ -107,9 +128,9 @@ describe Containers::AutoassociativeArray, "#to_s" do
 end
 
 #
-# Containers::AutoassociativeArray#rebuild_hash
+# Containers::AutoassociativeArray#dup
 #
-describe Containers::AutoassociativeArray, "#rebuild_hash" do
+describe Containers::AutoassociativeArray, "#dup" do
   it "remains unchanged" do
     # TODO
   end

@@ -108,6 +108,29 @@ for FILE in $commited_files; do
       fi
     fi
 
+    # If a file is python, check for syntax errors using python or pypy
+    if [[ "$FILE" =~ .*\.py$ ]]; then
+      if [[ -n `which python 2> /dev/null` ]]; then
+        if [[ "$fail" -eq 0 || -z "$fail" ]]; then
+          python -m py_compile "$FILE" 1> /dev/null; fail=$?
+          if [[ "$fail" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
+        else
+          python -m py_compile "$FILE" 1> /dev/null
+          if [[ "$?" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
+        fi
+      elif [[ -n `which pypy 2> /dev/null` ]]; then
+        if [[ "$fail" -eq 0 || -z "$fail" ]]; then
+          pypy -m py_compile "$FILE" 1> /dev/null; fail=$?
+          if [[ "$fail" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
+        else
+          pypy -m py_compile "$FILE" 1> /dev/null
+          if [[ "$?" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
+        fi
+      else
+        echo "WARNING: Python file found, but syntax cannot be checked without 'python' or 'pypy' binary"
+      fi
+    fi
+
     # If a file is javascript, check for syntax errors using js
     if [[ "$FILE" =~ .*\.js$ ]]; then
       if [[ -n `which js 2> /dev/null` ]]; then

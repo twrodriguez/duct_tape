@@ -1,10 +1,9 @@
 module Containers
   class AutoassociativeArray
-    def initialize(*args)
+    def initialize
       @values = []
       @columns = Hash.new { |hsh,key| hsh[key] = {} }
       @hash = Hash.new { |hsh,key| hsh[key] = [] }
-      insert(args) unless args.empty?
       self
     end
 
@@ -18,23 +17,25 @@ module Containers
     end
 
     def partial_match(*args)
+      matches = {}
       ret = []
       (1..args.size).reverse_each do |i|
-        break unless ret.empty?
         args.combination(i) do |subset|
-          ret |= self[*subset]
-          break unless ret.empty?
+          check = match_impl(*subset)
+          matches[subset] = check unless check.empty?
+        end
+        most_matches = matches.map { |k,v| v.size }.max
+        matches.reject! { |k,v| v.size < most_matches }
+        unless matches.empty?
+          matches.each { |k,v| ret |= v }
+          break
         end
       end
       (ret && ret.one? ? ret[0] : ret)
     end
 
     def [](*args)
-      ret = @hash[args.first]
-      args[1..-1].each do |k|
-        ret &= @hash[k]
-        break if ret.empty?
-      end
+      ret = match_impl(*args)
       (ret && ret.one? ? ret[0] : ret)
     end
 
@@ -72,6 +73,12 @@ module Containers
       @values.to_s
     end
 
+    def dup
+      ret = self.class.new
+      @values.each { |set| ret.insert(*set) }
+      ret
+    end
+
     def <<(ary)
       insert(*ary)
     end
@@ -89,6 +96,15 @@ module Containers
         end
       end
       self
+    end
+
+    def match_impl(*args)
+      ret = @hash[args.first]
+      args[1..-1].each do |k|
+        ret &= @hash[k]
+        break if ret.empty?
+      end
+      ret
     end
   end
 end
