@@ -275,15 +275,20 @@ module Kernel
 
     # Solaris Miner
     solaris_miner = lambda do
-      version = `uname -r`.strip
       distro = `uname -a`.match(/(open\s*)?(solaris)/i)[1..-1].compact.map { |s| s.capitalize }.join
+      version = `uname -r`.strip
+      nickname = "#{distro} #{version.split('.')[-1]}"
+      if distro == "OpenSolaris"
+        ver_date = `cat /etc/release | grep -o '[0-9]\\{4\\}\\.[0-9]\\{2\\}'`.strip
+        nickname = "#{distro} #{ver_date}"
+      end
       @@os_features.merge!({
         :platform => "solaris",
         :os_distro => distro,
         :os_version => version,
         :install_method => "install",
-        :install_cmd => "pkg_add -r",
-        :os_nickname => version,
+        :install_cmd => "pkg install",
+        :os_nickname => nickname,
         :hostname => `hostname`.chomp,
         :arch => proc_arch_miner[nil],
         :n_cpus => proc_count_miner[nil],
@@ -293,14 +298,15 @@ module Kernel
 
     # *BSD Miner
     bsd_miner = lambda do
+      distro = `uname -s`.strip
       version = `uname -r`.strip
       @@os_features.merge!({
         :platform => "bsd",
-        :os_distro => `uname -s`.strip,
+        :os_distro => distro,
         :os_version => version,
         :install_method => "install",
         :install_cmd => "pkg_add -r",
-        :os_nickname => version,
+        :os_nickname => "#{distro} #{version}",
         :hostname => `hostname`.chomp,
         :arch => proc_arch_miner[nil],
         :n_cpus => proc_count_miner[nil],
@@ -433,7 +439,7 @@ module Kernel
     elsif ENV['SSH_CONNECTION']
       return ENV['SSH_CONNECTION'].split(/\s+/)[-2]
     else
-      possible_ips = `ifconfig | grep -o "inet \\(addr:\\)\\?[0-9\\.]*" | grep -o "[0-9\\.]*$"`.split(/\n/)
+      possible_ips = `ifconfig -a | grep -o "inet \\(addr:\\)\\?[0-9\\.]*" | awk '{print $2}'`.split(/\n/)
       possible_ips.reject! { |ip| ip == "127.0.0.1" }
       return possible_ips.first
     end
@@ -444,7 +450,7 @@ module Kernel
     @@platform_features ||= {
       :interpreter => detect_interpreter,
       :interpreter_language => detect_interpreter_language,
-      :ip => detect_reachable_ip,
+      :ipv4 => detect_reachable_ip,
       :ruby_version => RUBY_VERSION,
     }.merge(detect_os)
   end

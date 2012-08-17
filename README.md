@@ -86,24 +86,59 @@ Range, Regexp, String, and Time have patches in duct_tape. Here are a few exampl
     # Time
     Time.duration(61621)                      #=> "17 hours, 7 minutes and 1 second"
 
-    # Kernel
-    detect_platform                           #=> {:arch=>"x86_64",
-                                              #    :hostname=>"Hanzo",
+Platform Detection
+------------------
+
+    # Kernel (on Fedora)
+    detect_platform                           #=> {:arch=>"i386",
+                                              #    :hostname=>"Teruhide",
                                               #    :install_cmd=>"yum install -y",
+                                              #    :install_method=>"install",
+                                              #    :interpreter=>"jruby",
+                                              #    :interpreter_language=>"java",
+                                              #    :ipv4=>"192.168.1.24",
+                                              #    :local_install_cmd=>"yum localinstall -y",
+                                              #    :n_cpus=>4,
+                                              #    :os_distro=>"Fedora",
+                                              #    :os_nickname=>"Verne",
+                                              #    :os_version=>"16",
+                                              #    :pkg_arch=>"i386",
+                                              #    :pkg_format=>"rpm",
+                                              #    :platform=>"linux",
+                                              #    :ram=>2106052608,
+                                              #    :ruby_version=>"1.8.7"}
+
+    # Kernel (on Windows)
+    detect_platform                           #=> {:arch=>"i386",
+                                              #    :hostname=>"TIM-84DDD2CE6C6",
+                                              #    :install_cmd=>"install",
                                               #    :install_method=>"install",
                                               #    :interpreter=>"mri",
                                               #    :interpreter_language=>"c",
-                                              #    :ip=>"192.168.1.57",
-                                              #    :local_install_cmd=>"yum localinstall -y",
-                                              #    :n_cpus=>2,
-                                              #    :os_distro=>"Fedora",
-                                              #    :os_nickname=>"BeefyMiracle",
-                                              #    :os_version=>"17",
-                                              #    :pkg_arch=>"x86_64",
-                                              #    :pkg_format=>"rpm",
-                                              #    :platform=>"linux",
-                                              #    :ram=>4078997504,
+                                              #    :ipv4=>"10.0.2.15",
+                                              #    :n_cpus=>8,
+                                              #    :os_distro=>"XP Professional",
+                                              #    :os_nickname=>"Microsoft Windows XP Professional",
+                                              #    :os_version=>"5.1.2600",
+                                              #    :platform=>"windows",
+                                              #    :ram=>2146435072,
                                               #    :ruby_version=>"1.9.3"}
+
+    # Kernel (on OpenSolaris)
+    detect_platform                           #=> {:arch=>"i386",
+                                              #    :hostname=>"opensolaris",
+                                              #    :install_cmd=>"pkg install",
+                                              #    :install_method=>"install",
+                                              #    :interpreter=>"mri",
+                                              #    :interpreter_language=>"c",
+                                              #    :ipv4=>"192.168.1.70",
+                                              #    :n_cpus=>8,
+                                              #    :os_distro=>"OpenSolaris",
+                                              #    :os_nickname=>"OpenSolaris 2009.06",
+                                              #    :os_version=>"5.11",
+                                              #    :platform=>"solaris",
+                                              #    :ram=>2147483648,
+                                              #    :ruby_version=>"1.8.7"}
 
 
 AutoassociativeArray
