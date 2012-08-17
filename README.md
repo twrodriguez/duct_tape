@@ -22,7 +22,7 @@ much more malleable. Any overridden methods have maintained their original funct
 Supported Platforms
 -------------------
 
-- MacOSX, Linux, FreeBSD, Solaris, Windows (mingw)
+- Mac OSX, Linux, FreeBSD, Solaris, Windows XP or Later (mingw)
 - Ruby Versions 1.8.7+
 - MRI, YARV, RubyEE, Rubinius, JRuby
 
@@ -85,6 +85,26 @@ Range, Regexp, String, and Time have patches in duct_tape. Here are a few exampl
 
     # Time
     Time.duration(61621)                      #=> "17 hours, 7 minutes and 1 second"
+
+    # Kernel
+    detect_platform                           #=> {:arch=>"x86_64",
+                                              #    :hostname=>"Hanzo",
+                                              #    :install_cmd=>"yum install -y",
+                                              #    :install_method=>"install",
+                                              #    :interpreter=>"mri",
+                                              #    :interpreter_language=>"c",
+                                              #    :ip=>"192.168.1.57",
+                                              #    :local_install_cmd=>"yum localinstall -y",
+                                              #    :n_cpus=>2,
+                                              #    :os_distro=>"Fedora",
+                                              #    :os_nickname=>"BeefyMiracle",
+                                              #    :os_version=>"17",
+                                              #    :pkg_arch=>"x86_64",
+                                              #    :pkg_format=>"rpm",
+                                              #    :platform=>"linux",
+                                              #    :ram=>4078997504,
+                                              #    :ruby_version=>"1.9.3"}
+
 
 AutoassociativeArray
 --------------------
