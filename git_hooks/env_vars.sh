@@ -7,13 +7,11 @@ uname_output=`uname -s`
 if [[ "$uname_output" =~ "Linux" ]]; then
   my_platform="linux"
 elif [[ "$uname_output" =~ "Darwin" ]]; then
-  my_platform="macosx"
+  my_platform="darwin"
 elif [[ "$uname_output" =~ "Solaris" || "$uname_output" =~ "SunOS" ]]; then
   my_platform="solaris"
-  echo "WARNING: Solaris is not yet tested"
-elif [[ "$uname_output" =~ "FreeBSD" ]]; then
-  my_platform="freebsd"
-  echo "WARNING: FreeBSD is not yet tested"
+elif [[ "$uname_output" =~ "BSD" ]]; then
+  my_platform="bsd"
 else
   echo "ERROR: Unknown Platform '$uname_output'"
   exit 1
@@ -27,7 +25,7 @@ if [[ -e "/proc/cpuinfo" ]]; then
 elif [[ -n `which lscpu 2> /dev/null` ]]; then
   num_cpus=`lscpu | grep -i "CPU(s):" | awk '{print $2}'`
 else
-  num_cpus=`sudo sysctl -a 2> /dev/null | egrep -i 'hw.ncpu' | awk '{print $2}'`
+  num_cpus=`sysctl -a 2> /dev/null | egrep -i 'hw.ncpu' | awk '{print $2}'`
 fi
 
 if [[ -n `which arch 2> /dev/null` ]]; then
@@ -43,9 +41,13 @@ if [[ "$my_arch" =~ sparc ]]; then
   my_arch_family="sparc"
 elif [[ "$my_arch" =~ ^ppc || "$my_arch" =~ powerpc ]]; then
   my_arch_family="powerpc"
-elif [[ "$my_arch" =~ 64$ ]]; then
+elif [[ "$my_arch" =~ IA64 || "$my_arch" =~ ia64 ]]; then
+  my_arch_family="ia64"
+elif [[ "$my_arch" =~ IA32 || "$my_arch" =~ ia32 ]]; then
+  my_arch_family="ia32"
+elif [[ "$my_arch" =~ 64 ]]; then
   my_arch_family="x86_64"
-elif [[ "$my_arch" =~ 86$ ]]; then
+elif [[ "$my_arch" =~ 86 ]]; then
   my_arch_family="i386"
 elif [[ "$my_arch" =~ arm ]]; then
   my_arch_family="arm"
@@ -80,6 +82,12 @@ if [[ "$my_platform" == "linux" ]]; then
       sudo zypper --non-interactive install lsb
     elif [[ -n `which pacman 2> /dev/null` ]]; then   # ArchLinux?
       sudo pacman -S --noconfirm lsb
+    elif [[ -n `which slackpkg 2> /dev/null` ]]; then # Slackware?
+      sudo slackpkg install lsb
+    elif [[ -n `which urpmi 2> /dev/null` ]]; then    # Mandriva?
+      sudo urpmi --auto lsb-release
+    elif [[ -n `which emerge 2> /dev/null` ]]; then   # Gentoo?
+      sudo emerge lsb_release
     else
       echo "ERROR: Unknown Package manager in use (what ARE you using??)"
       exit 1
@@ -139,13 +147,32 @@ if [[ "$my_platform" == "linux" ]]; then
     my_pkg_fmt="pkg.tar.xz"
     my_install="pacman -S --noconfirm"
     my_local_install="pacman -U --noconfirm"
+  elif [[ -n `echo $lsb_release_output | grep -i "slack"` ]]; then
+    my_distro="slackware"
+    if [[ "$my_major_release" -lt "13" ]]; then
+      my_pkg_fmt="tgz"
+    else
+      my_pkg_fmt="txz"
+    fi
+    my_install="slackpkg install --yes" # TODO - Correct?
+    my_local_install="installpkg"
+  elif [[ -n `echo $lsb_release_output | grep -i "mandriva"` ]]; then
+    my_distro="mandriva"
+    my_pkg_fmt="rpm"
+    my_install="urpmi --auto "
+    my_local_install="urpmi --auto"
+  elif [[ -n `echo $lsb_release_output | grep -i "gentoo"` ]]; then
+    my_distro="gentoo"
+    my_pkg_fmt="tgz"
+    my_install="emerge"
+    my_local_install=""
   else
     echo "Warning: Unsupported Linux Distribution, compiling from source"
     my_method="build"
     my_distro=`lsb_release -d 2> /dev/null`
   fi
 
-elif [[ "$my_platform" == "macosx" ]]; then
+elif [[ "$my_platform" == "darwin" ]]; then
 
   my_distro="Mac OSX"
   my_pkg_fmt=""
@@ -191,17 +218,20 @@ elif [[ "$my_platform" == "solaris" ]]; then
 
   my_major_release=`uname -r | grep -o "[0-9]\+" | head -2 | tail -1`
   my_method="install"
-  my_install="port install"
+  # NOTE - `pfexec pkg set-publisher -O http://pkg.openindiana.org/legacy opensolaris.org`
+  # NOTE - SUNWruby18, SUNWgcc, SUNWgnome-common-devel
+  my_install="pkg install"
 
-elif [[ "$my_platform" == "freebsd" ]]; then
+elif [[ "$my_platform" == "bsd" ]]; then
 
   my_distro="FreeBSD"
-  my_pkg_fmt=""
+  my_pkg_fmt="tgz"
   my_local_install=""
   my_nickname=""
 
   my_major_release=`uname -r | grep -o "[0-9]\+" | head -1`
   my_method="install"
-  my_install="port install"
+  # NOTE - `portsnap fetch extract` to update snapshot
+  my_install="pkg_add -r"
 
 fi

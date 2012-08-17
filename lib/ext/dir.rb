@@ -70,4 +70,12 @@ class Dir
   def directories
     children.reject { |k,v| !(Dir === v) }.values
   end
+
+  def writable?
+    File.writable?(self.path)
+  end
+
+  def readable?
+    File.readable?(self.path)
+  end
 end

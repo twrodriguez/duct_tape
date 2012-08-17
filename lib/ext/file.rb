@@ -23,4 +23,12 @@ class File
   def basename(*args)
     File.basename(self.path, *args)
   end
+
+  def writable?
+    File.writable?(self.path)
+  end
+
+  def readable?
+    File.readable?(self.path)
+  end
 end

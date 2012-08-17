@@ -19,12 +19,24 @@ Because duct_tape requires the excellent [facets](https://github.com/rubyworks/f
 and [algorithms](https://github.com/kanwei/algorithms) gems, the core classes have become
 much more malleable. Any overridden methods have maintained their original functionality.
 
+Supported Platforms
+-------------------
+
+- MacOSX, Linux, FreeBSD, Solaris, Windows (mingw)
+- Ruby Versions 1.8.7+
+- MRI, YARV, RubyEE, Rubinius, JRuby
+
 Requirements
 ------------
 
-- [facets](https://github.com/rubyworks/facets) gem
-- [algorithms](https://github.com/kanwei/algorithms) gem
-- Ruby 1.8.7 or Ruby 1.9
+- Ruby 1.8.7 (MRI / RubyEE / Rubinius):
+  - [facets](https://github.com/rubyworks/facets) gem
+  - [algorithms](https://github.com/kanwei/algorithms) gem
+- Ruby 1.9+:
+  - [facets](https://github.com/rubyworks/facets) gem
+  - [algorithms](https://github.com/kanwei/algorithms) gem
+- JRuby:
+  - [facets](https://github.com/rubyworks/facets) gem
 
 Core Extensions
 ---------------
