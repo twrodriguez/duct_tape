@@ -78,22 +78,24 @@ module Kernel
     proc_arch_miner = lambda do |stderr_redirect|
       stderr_redirect ||= "2> /dev/null"
       cmds = [
-        %+arch %s+,
-        %+lscpu %s | grep -i "Architecture" | awk '{print $2}'+,
-        %+uname -p %s+,
-#        %+systeminfo %s | findstr /B /C:"System Type:"+,
-        %+reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment" %s+
+        %<arch %s>, # Linux
+        %<lscpu %s | grep -i "Architecture" | awk '{print $2}'>, # Linux Alternative
+        %<uname -p %s>, # BSD-like
+        %<uname -m %s>, # BSD-like Alternate
+#        %<systeminfo %s | findstr /B /C:"System Type:">, # Windows Alternative
+        %<reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment" %s>, # Windows
+        %<sysinfo %s | grep -o "kernel_\\w*">, # Haiku
       ]
       arch_str = nil
       cmds.each do |cmd|
         begin
           arch_str = case `#{cmd % stderr_redirect}`.strip.downcase
-            when /sparc/;                "sparc"
+            when /sparc|sun4u/;          "sparc"
             when /ppc|powerpc/;          "powerpc"
-            when /ia64/;                 "ia64"
-            when /ia32/;                 "ia32"
+            when /mips/;                 "mips"
+            when /ia64|itanium/;         "itanium"
             when /(x|x?(?:86_)|amd)64/;  "x86_64"
-            when /(i[3-6]?|x)86/;        "i386"
+            when /(i[3-6]?|x)86|ia32/;   "i386"
             when /arm/;                  "arm"
           end
           break if arch_str
@@ -107,11 +109,12 @@ module Kernel
     proc_count_miner = lambda do |stderr_redirect|
       stderr_redirect ||= "2> /dev/null"
       cmds = [
-        %+cat /proc/cpuinfo %s | grep processor | wc -l+,
-        %+lscpu %s | grep -i "^CPU(s):" | awk '{print $2}'+,
-        %+sysctl -a %s | egrep -i "hw.ncpu" | awk '{print $2}'+, # FreeBSD
-        %+psrinfo %s | wc -l+, # Solaris
-        %+reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment" %s | findstr /C:"NUMBER_OF_PROCESSORS"+
+        %<cat /proc/cpuinfo %s | grep processor | wc -l>, # Linux
+        %<lscpu %s | grep -i "^CPU(s):" | awk '{print $2}'>, # Linux Alternative
+        %<sysctl -a %s | egrep -i "hw.ncpu" | awk '{print $2}'>, # FreeBSD
+        %<psrinfo %s | wc -l>, # Solaris
+        %<reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment" %s | findstr /C:"NUMBER_OF_PROCESSORS">, # Windows
+        %<sysinfo %s | grep -i "CPU #[0-9]*:" | wc -l>, # Haiku
       ]
       n_cpus = 0
       cmds.each do |cmd|
@@ -124,14 +127,49 @@ module Kernel
       n_cpus
     end
 
+    # Physical Memory Size Miner
+    mem_size_miner = lambda do |stderr_redirect|
+      stderr_redirect ||= "2> /dev/null"
+      cmds = [
+        %<free -ob %s | grep "Mem:" | awk '{print $2}'>, # Linux
+        %<sysctl -a %s | grep hw.physmem | awk '{print $2}'>, # FreeBSD
+        %<sysinfo %s | grep -i "bytes\\s*free" | grep -o "[0-9]*)" | grep -o "[0-9]*">, # Haiku
+        %<top -d1 -q %s | grep "Mem" | awk '{print $2}'>, # Solaris
+        %<systeminfo %s | findstr /C:"Total Physical Memory">, # Windows
+      ]
+      mem_size = 0
+      cmds.each do |cmd|
+        begin
+          size = `#{cmd % stderr_redirect}`.strip.gsub(/,/, "")
+          if size =~ /Total Physical Memory/
+            size = size.strip.split(":")[-1].split.join
+          end
+          unless size.empty?
+            mem_size = size.to_i
+            if size =~ /(K|M|G|T)B?$/i
+              case $1.upcase
+              when "K"; mem_size *= 1024
+              when "M"; mem_size *= 1048576
+              when "G"; mem_size *= 1073741824
+              when "T"; mem_size *= 1099511627776
+              end
+            end
+            break
+          end
+        rescue Errno::ENOENT, NoMethodError
+        end
+      end
+      mem_size
+    end
+
     # Mac Miner
     mac_miner = lambda do
       version = `sw_vers -productVersion`.match(/\d+\.\d+\.\d+/)[0]
       @@os_features.merge!({
         :platform => "darwin",
-        :distro => "Mac OSX",
-        :version => version,
-        :nickname => case version
+        :os_distro => "Mac OSX",
+        :os_version => version,
+        :os_nickname => case version
           when /^10.0/; "Cheetah"
           when /^10.1/; "Puma"
           when /^10.2/; "Jaguar"
@@ -145,8 +183,9 @@ module Kernel
         end,
         :install_method => "install",
         :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner["2> /dev/null"],
-        :n_cpus => proc_count_miner["2> /dev/null"],
+        :arch => proc_arch_miner[nil],
+        :n_cpus => proc_count_miner[nil],
+        :ram => mem_size_miner[nil],
       })
       if `which brew 2> /dev/null`.chomp.empty?
         @@os_features[:install_cmd] = "brew install"
@@ -155,6 +194,7 @@ module Kernel
       else
         @@os_features[:install_method] = "build"
       end
+      @@os_features
     end
 
     # Linux Miner
@@ -183,7 +223,7 @@ module Kernel
         end
       end
 
-      arch_family = proc_arch_miner["2> /dev/null"]
+      arch_family = proc_arch_miner[nil]
       install_method = "install"
       version = `lsb_release -r 2> /dev/null | awk '{print $2}'`.chomp
       major_release = version.to_i
@@ -216,17 +256,18 @@ module Kernel
       end
       ret = {
         :platform => "linux",
-        :distro => distro,
+        :os_distro => distro,
         :pkg_format => pkg_fmt,
         :pkg_arch => pkg_arch,
-        :version => version,
+        :os_version => version,
         :install_method => install_method,
         :install_cmd => install,
         :local_install_cmd => local_install,
-        :nickname => nickname,
+        :os_nickname => nickname,
         :hostname => `hostname`.chomp,
         :arch => arch_family,
-        :n_cpus => proc_count_miner["2> /dev/null"],
+        :n_cpus => proc_count_miner[nil],
+        :ram => mem_size_miner[nil],
       }
       ret.reject! { |k,v| v.nil? }
       @@os_features.merge!(ret)
@@ -238,30 +279,49 @@ module Kernel
       distro = `uname -a`.match(/(open\s*)?(solaris)/i)[1..-1].compact.map { |s| s.capitalize }.join
       @@os_features.merge!({
         :platform => "solaris",
-        :distro => distro,
-        :version => version,
+        :os_distro => distro,
+        :os_version => version,
         :install_method => "install",
         :install_cmd => "pkg_add -r",
-        :nickname => version,
+        :os_nickname => version,
         :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner["2> /dev/null"],
-        :n_cpus => proc_count_miner["2> /dev/null"],
+        :arch => proc_arch_miner[nil],
+        :n_cpus => proc_count_miner[nil],
+        :ram => mem_size_miner[nil],
       })
     end
 
-    # FreeBSD Miner
-    freebsd_miner = lambda do
+    # *BSD Miner
+    bsd_miner = lambda do
       version = `uname -r`.strip
       @@os_features.merge!({
         :platform => "bsd",
-        :distro => "FreeBSD",
-        :version => version,
+        :os_distro => `uname -s`.strip,
+        :os_version => version,
         :install_method => "install",
         :install_cmd => "pkg_add -r",
-        :nickname => version,
+        :os_nickname => version,
         :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner["2> /dev/null"],
-        :n_cpus => proc_count_miner["2> /dev/null"],
+        :arch => proc_arch_miner[nil],
+        :n_cpus => proc_count_miner[nil],
+        :ram => mem_size_miner[nil],
+      })
+    end
+
+    # Haiku Miner
+    haiku_miner = lambda do
+      version = `uname -r`.strip
+      distro = `uname -s`.strip
+      @@os_features.merge!({
+        :platform => "beos",
+        :os_distro => distro,
+        :os_version => version,
+        :install_method => "build",
+        :os_nickname => "#{distro} #{version}",
+        :hostname => `hostname`.chomp,
+        :arch => proc_arch_miner[nil],
+        :n_cpus => proc_count_miner[nil],
+        :ram => mem_size_miner[nil],
       })
     end
 
@@ -283,15 +343,16 @@ module Kernel
         nickname = try_boot_ini.match(/WINDOWS="([^"]+)"/i)[1].strip
       end
       @@os_features.merge!({
-        :distro => nickname.split(/\s+/).reject { |s| s =~ /microsoft|windows/i }.join(" "),
+        :os_distro => nickname.split(/\s+/).reject { |s| s =~ /microsoft|windows/i }.join(" "),
         :hostname => hostname,
-        :nickname => nickname,
-        :version => version,
+        :os_nickname => nickname,
+        :os_version => version,
         :platform => "windows",
         :install_method => "install",
         :install_cmd => "install",
         :arch => proc_arch_miner["2> nul"],
         :n_cpus => proc_count_miner["2> nul"],
+        :ram => mem_size_miner["2> nul"],
       })
     end
 
@@ -299,14 +360,16 @@ module Kernel
     when /darwin/;      mac_miner[]
     when /mswin|mingw/; windows_miner[]
     when /linux/;       linux_miner[]
-    when /freebsd/;     freebsd_miner[]
+    when /bsd/;         bsd_miner[]
     when /solaris/;     solaris_miner[]
     else
       case `uname -s`.chomp.downcase
       when /linux/;     linux_miner[]
       when /darwin/;    mac_miner[]
       when /solaris/;   solaris_miner[]
-      when /freebsd/;   freebsd_miner[]
+      when /bsd/;       bsd_miner[]
+      when /dragonfly/; bsd_miner[]
+      when /haiku/;     haiku_miner[]
       end
     end
 
@@ -381,7 +444,8 @@ module Kernel
     @@platform_features ||= {
       :interpreter => detect_interpreter,
       :interpreter_language => detect_interpreter_language,
-      :ip => detect_reachable_ip
+      :ip => detect_reachable_ip,
+      :ruby_version => RUBY_VERSION,
     }.merge(detect_os)
   end
 
