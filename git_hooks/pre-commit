@@ -72,7 +72,7 @@ fi
 for FILE in $commited_files; do
   if test -f "$FILE"; then
     filetype=`file -b $FILE`
-    if [[ -n "$whitespace_modifation" ]]; then
+    if [[ -n "$whitespace_modification" ]]; then
       if [[ "$filetype" =~ "text" ]]; then
         if [[ -n `grep "\\s\\s*$" $FILE` ]]; then whitespace="$whitespace $FILE"; fi
         # Remove trailing whitespace
@@ -223,7 +223,7 @@ done
 #
 # Was whitespace modified?
 #
-if [[ -n "$whitespace_modifation" ]]; then
+if [[ -n "$whitespace_modification" ]]; then
   [[ -n "$whitespace" ]] && lod_message
   for FILE in $whitespace; do
     echo "Whitespace problem fixed. Please re-add '$FILE' to your commit"
