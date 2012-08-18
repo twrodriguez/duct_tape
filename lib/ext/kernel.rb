@@ -279,8 +279,7 @@ module Kernel
       version = `uname -r`.strip
       nickname = "#{distro} #{version.split('.')[-1]}"
       if distro == "OpenSolaris"
-        ver_date = `cat /etc/release | grep -o '[0-9]\\{4\\}\\.[0-9]\\{2\\}'`.strip
-        nickname = "#{distro} #{ver_date}"
+        nickname = `cat /etc/release | grep -o "OpenSolaris [a-zA-Z0-9.]\\+"`.strip
       end
       @@os_features.merge!({
         :platform => "solaris",

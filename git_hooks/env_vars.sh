@@ -228,7 +228,7 @@ elif [[ "$my_platform" == "solaris" ]]; then
   my_major_release=`uname -r | grep -o "[0-9]\+" | head -2 | tail -1`
   if [[ -n `uname -a | grep -i "open\s*solaris"` ]]; then
     my_distro="OpenSolaris"
-    my_nickname="$my_distro `cat /etc/release | grep -o "[0-9]\\{4\\}\\.[0-9]\\{2\\}"`"
+    my_nickname="$my_distro `cat /etc/release | grep -o "OpenSolaris [a-zA-Z0-9.]\\+"`"
   else
     my_distro="Solaris"
     my_nickname="$my_distro $my_major_release"
