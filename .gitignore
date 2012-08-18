@@ -1,23 +1,53 @@
-## MAC OS
-.DS_Store
-
-## TEXTMATE
-*.tmproj
-tmtags
-
-## EMACS
+# Numerous always-ignore extensions
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.swo
+*.swp
+*.vi
 *~
+*.sass-cache
 \#*
 .\#*
 
-## VIM
-*.swp
-*.swo
+# OS or Editor folders
+.DS_Store
+.cache
+.project
+.settings
+.tmproj
+tmtags
+nbproject
+Thumbs.db
 
-## PROJECT
+# Dreamweaver added files
+_notes
+dwsync.xml
+
+# Komodo
+*.komodoproject
+.komodotools
+
+# Folders to ignore
+.hg
+.svn
+.CVS
+intermediate
+publish
+.idea
+
+# build script local files
+build/buildinfo.properties
+build/config/buildinfo.properties
+
+## PROJECT::GENERAL
 rdoc
 pkg
 log
-
-## Rubinius
+tmp
+.bundle
+.yardoc
 .rbx
+doc

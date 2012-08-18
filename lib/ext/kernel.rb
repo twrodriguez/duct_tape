@@ -30,41 +30,54 @@ module Kernel
   end
 
   def not_implemented(message=nil)
-    raise NotImplementedError.new("Method `#{calling_method}' has not been implemented")
+    raise NotImplementedError, "Method `#{calling_method}' has not been implemented", caller[2..-1]
   end
 
   def automatic_require(full_path=nil)
     some_not_included = true
-    type_assert(full_path, String, nil)
+    type_assert(full_path, String, Array, nil)
 
+    # Discover filename and directory of function that called automatic_require
     c = caller.first
-    unless c.rindex(/:\d+(:in `.*')?$/)
-      raise ArgumentError, "wrong number of arguments(0 for 1)", caller
-    end
-    caller_file = $`
-    if /\A\((.*)\)/ =~ caller_file # eval, etc.
-      raise ArgumentError, "wrong number of arguments(0 for 1)", caller
-    end
-    caller_dir = File.dirname(caller_file)
-    caller_file_basename = File.basename(caller_file, ".rb")
-
-    if full_path.nil?
-      full_path = File.join(caller_dir, caller_file_basename)
-    end
-
-    files = nil
-    if String === full_path
-      if File.exist?(full_path)
-        if File.file?(full_path)
-          files = [full_path]
-        end
-      elsif File.directory?(File.join(caller_dir, full_path))
-        full_path = File.join(caller_dir, full_path)
+    caller_dir = Dir.pwd
+    caller_file_basename = nil
+    if c.rindex(/:\d+(:in `.*')?$/)
+      caller_file = $`
+      unless /\A\((.*)\)/ =~ caller_file # eval, etc.
+        caller_dir = File.dirname(caller_file)
+        caller_file_basename = File.basename(caller_file, ".rb")
       end
     end
 
-    # TODO - memorize order to make future iterations faster
-    files ||= Dir[File.join(File.expand_path(full_path), "*.rb")]
+    # If nothing was passed, use the basename without ".rb" as the require path
+    if full_path.nil?
+      full_path = File.join([caller_dir, caller_file_basename].compact)
+    end
+
+    # Discover files
+    files = []
+    [*full_path].each do |path|
+      try_these = [
+        path,
+        File.join([caller_dir, path].compact),
+        File.join([caller_dir, caller_file_basename, path].compact)
+      ]
+      try_these.each do |possibility|
+        possibility = File.expand_path(possibility)
+        if File.exist?(possibility)
+          if File.file?(possibility)
+            files |= [possibility]
+          elsif File.directory?(possibility)
+            files |= Dir[File.join(possibility, "*.rb")]
+          end
+        end
+      end
+    end
+    if files.empty?
+      raise "No files found to require for #{full_path.inspect}", caller
+    end
+
+    successful_require_order = []
     retry_loop = 0
     last_err = nil
     while some_not_included and retry_loop <= (files.size ** 2) do
@@ -73,6 +86,7 @@ module Kernel
         for f in files do
           val = require f
           some_not_included ||= val
+          successful_require_order << f if val
         end
       rescue NameError => e
         last_err = e
@@ -83,10 +97,11 @@ module Kernel
       retry_loop += 1
     end
     if some_not_included
-      warn "Couldn't auto-include all files in #{File.expand_path(full_path)}"
+      warn "Couldn't auto-include all files in #{full_path.inspect}"
       warn "#{last_err}"
       raise last_err
     end
+    successful_require_order
   end
 
   def type_assert(var, *klasses)
@@ -247,7 +262,7 @@ module Kernel
           end
         end
         unless ret
-          STDERR.puts "Unknown Package manager in use (what ARE you using??)"
+          $stderr.puts "Unknown Package manager in use (what ARE you using??)"
         end
       end
 
