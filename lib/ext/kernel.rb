@@ -33,10 +33,38 @@ module Kernel
     raise NotImplementedError.new("Method `#{calling_method}' has not been implemented")
   end
 
-  def automatic_require(full_path)
-    # TODO - memorize order to make future iterations faster
+  def automatic_require(full_path=nil)
     some_not_included = true
-    files = Dir[File.join(File.expand_path(full_path), "**", "*.rb")]
+    type_assert(full_path, String, nil)
+
+    c = caller.first
+    unless c.rindex(/:\d+(:in `.*')?$/)
+      raise ArgumentError, "wrong number of arguments(0 for 1)", caller
+    end
+    caller_file = $`
+    if /\A\((.*)\)/ =~ caller_file # eval, etc.
+      raise ArgumentError, "wrong number of arguments(0 for 1)", caller
+    end
+    caller_dir = File.dirname(caller_file)
+    caller_file_basename = File.basename(caller_file, ".rb")
+
+    if full_path.nil?
+      full_path = File.join(caller_dir, caller_file_basename)
+    end
+
+    files = nil
+    if String === full_path
+      if File.exist?(full_path)
+        if File.file?(full_path)
+          files = [full_path]
+        end
+      elsif File.directory?(File.join(caller_dir, full_path))
+        full_path = File.join(caller_dir, full_path)
+      end
+    end
+
+    # TODO - memorize order to make future iterations faster
+    files ||= Dir[File.join(File.expand_path(full_path), "*.rb")]
     retry_loop = 0
     last_err = nil
     while some_not_included and retry_loop <= (files.size ** 2) do
@@ -62,7 +90,7 @@ module Kernel
   end
 
   def type_assert(var, *klasses)
-    klasses.each { |k| return if var.is_a?(k) }
+    klasses.each { |k| return if k === var }
     raise TypeError, "can't convert #{var.inspect}:#{var.class} into #{klasses.join(' or ')}", caller
   end
 
@@ -412,12 +440,12 @@ module Kernel
 
   # Detect the Language we're running on.
   def detect_interpreter_language
-    case detect_interpreter
-    when "jruby";             "java"
-    when "rubinius";          "c++"
-    when "maglev";            "smalltalk"
-    when "ironruby";          ".net"
-    when /rubyee|goruby|mri/; "c"
+    @@interpreter_language ||= case detect_interpreter
+      when "jruby";             "java"
+      when "rubinius";          "c++"
+      when "maglev";            "smalltalk"
+      when "ironruby";          ".net"
+      when /rubyee|goruby|mri/; "c"
     end
   end
 
