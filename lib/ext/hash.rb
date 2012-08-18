@@ -37,8 +37,18 @@ class Hash
   end
   alias_method :to_hash, :to_h
 
+  def &(other)
+    type_assert(other, Array, Hash)
+    other = other.keys if Hash === other
+    self.reject { |key,val| !other.include?(key) }
+  end
   alias_method :select_keys, :&
 
+  def -(other)
+    type_assert(other, Array, Hash)
+    other = other.keys if Hash === other
+    self.reject { |key,val| other.include?(key) }
+  end
   alias_method :reject_keys, :-
 
   def chunk(max_length=nil, &block)
