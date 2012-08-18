@@ -10,8 +10,10 @@ elif [[ "$uname_output" =~ "Darwin" ]]; then
   my_platform="darwin"
 elif [[ "$uname_output" =~ "Solaris" || "$uname_output" =~ "SunOS" ]]; then
   my_platform="solaris"
-elif [[ "$uname_output" =~ "BSD" ]]; then
+elif [[ "$uname_output" =~ "BSD" || "$uname_output" =~ "DragonFly" ]]; then
   my_platform="bsd"
+elif [[ "$uname_output" =~ "Haiku" ]]; then
+  my_platform="beos"
 else
   echo "ERROR: Unknown Platform '$uname_output'"
   exit 1
@@ -21,33 +23,48 @@ fi
 # Determine CPU info
 #
 if [[ -e "/proc/cpuinfo" ]]; then
+  # Linux
   num_cpus=`cat /proc/cpuinfo | grep processor | wc -l`
 elif [[ -n `which lscpu 2> /dev/null` ]]; then
+  # Linux Alternative
   num_cpus=`lscpu | grep -i "CPU(s):" | awk '{print $2}'`
-else
+elif [[ -n `which psrinfo 2> /dev/null` ]]; then
+  # Solaris
+  num_cpus=`psrinfo | wc -l`
+elif [[ -n `which sysinfo 2> /dev/null` ]]; then
+  # Haiku/BeOS
+  num_cpus=`sysinfo | grep -i "CPU #[0-9]*:" | wc -l`
+elif [[ -n `which sysctl 2> /dev/null` ]]; then
+  # BSD
   num_cpus=`sysctl -a 2> /dev/null | egrep -i 'hw.ncpu' | awk '{print $2}'`
 fi
 
 if [[ -n `which arch 2> /dev/null` ]]; then
+  # Linux
   my_arch=`arch`
 elif [[ -n `which lscpu 2> /dev/null` ]]; then
+  # Linux Alternative
   my_arch=`lscpu | grep -i "Architecture" | awk '{print $2}'`
+elif [[ -n `which sysinfo 2> /dev/null` ]]; then
+  # Haiku/BeOS
+  my_arch=`sysinfo | grep -o "kernel_\\w*"`
 else
+  # BSD/Solaris
   my_arch=`uname -p 2> /dev/null`
   [[ -n "$my_arch" ]] || my_arch=`uname -m 2> /dev/null`
 fi
 
-if [[ "$my_arch" =~ sparc ]]; then
+if [[ -n `echo $my_arch | grep -i "sparc\\|sun4u"` ]]; then
   my_arch_family="sparc"
-elif [[ "$my_arch" =~ ^ppc || "$my_arch" =~ powerpc ]]; then
+elif [[ -n `echo $my_arch | grep -i "^ppc\\|powerpc"` ]]; then
   my_arch_family="powerpc"
-elif [[ "$my_arch" =~ IA64 || "$my_arch" =~ ia64 ]]; then
-  my_arch_family="ia64"
-elif [[ "$my_arch" =~ IA32 || "$my_arch" =~ ia32 ]]; then
-  my_arch_family="ia32"
+elif [[ "$my_arch" =~ mips ]]; then
+  my_arch_family="mips"
+elif [[ -n `echo $my_arch | grep -i "ia64\\|itanium"` ]]; then
+  my_arch_family="itanium"
 elif [[ "$my_arch" =~ 64 ]]; then
   my_arch_family="x86_64"
-elif [[ "$my_arch" =~ 86 ]]; then
+elif [[ -n `echo $my_arch | grep -i "\\(i[3-6]\\?\\|x\\)86\\|ia32"` ]]; then
   my_arch_family="i386"
 elif [[ "$my_arch" =~ arm ]]; then
   my_arch_family="arm"
@@ -167,7 +184,7 @@ if [[ "$my_platform" == "linux" ]]; then
     my_install="emerge"
     my_local_install=""
   else
-    echo "Warning: Unsupported Linux Distribution, compiling from source"
+    echo "Warning: Unsupported Linux Distribution, any packages will be compiled from source"
     my_method="build"
     my_distro=`lsb_release -d 2> /dev/null`
   fi
@@ -175,9 +192,7 @@ if [[ "$my_platform" == "linux" ]]; then
 elif [[ "$my_platform" == "darwin" ]]; then
 
   my_distro="Mac OSX"
-  my_pkg_fmt=""
   my_install=""
-  my_local_install=""
 
   if [[ -z `which brew 2> /dev/null` ]]; then # Homebrew
     my_method="install"
@@ -205,33 +220,48 @@ elif [[ "$my_platform" == "darwin" ]]; then
       ;;
   esac
 
-elif [[ "$my_platform" == "solaris" ]]; then
-
-  if [[ -n `uname -a | grep -i "open\s*solaris"` ]]; then
-    my_distro="OpenSolaris"
-  else
-    my_distro="Solaris"
-  fi
   my_pkg_fmt=""
   my_local_install=""
-  my_nickname=""
+
+elif [[ "$my_platform" == "solaris" ]]; then
 
   my_major_release=`uname -r | grep -o "[0-9]\+" | head -2 | tail -1`
+  if [[ -n `uname -a | grep -i "open\s*solaris"` ]]; then
+    my_distro="OpenSolaris"
+    my_nickname="$my_distro `cat /etc/release | grep -o "[0-9]\\{4\\}\\.[0-9]\\{2\\}"`"
+  else
+    my_distro="Solaris"
+    my_nickname="$my_distro $my_major_release"
+  fi
   my_method="install"
   # NOTE - `pfexec pkg set-publisher -O http://pkg.openindiana.org/legacy opensolaris.org`
   # NOTE - SUNWruby18, SUNWgcc, SUNWgnome-common-devel
   my_install="pkg install"
 
+  my_pkg_fmt=""
+  my_local_install=""
+
 elif [[ "$my_platform" == "bsd" ]]; then
 
-  my_distro="FreeBSD"
+  my_distro=`uname -s`
   my_pkg_fmt="tgz"
-  my_local_install=""
-  my_nickname=""
-
+  my_nickname="$my_distro `uname -r`"
   my_major_release=`uname -r | grep -o "[0-9]\+" | head -1`
   my_method="install"
   # NOTE - `portsnap fetch extract` to update snapshot
   my_install="pkg_add -r"
+
+  my_local_install=""
+
+elif [[ "$my_platform" == "beos" ]]; then
+
+  my_distro=`uname -s`
+  my_major_release=`uname -r | grep -o "[0-9]\+" | head -1`
+  my_method="build"
+  my_nickname="$my_distro $my_major_release"
+
+  my_pkg_fmt=""
+  my_local_install=""
+  my_install=""
 
 fi
