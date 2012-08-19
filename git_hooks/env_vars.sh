@@ -60,6 +60,8 @@ elif [[ -n `echo $my_arch | grep -i "^ppc\\|powerpc"` ]]; then
   my_arch_family="powerpc"
 elif [[ "$my_arch" =~ mips ]]; then
   my_arch_family="mips"
+elif [[ "$my_arch" =~ s390 ]]; then
+  my_arch_family="s390x"
 elif [[ -n `echo $my_arch | grep -i "ia64\\|itanium"` ]]; then
   my_arch_family="itanium"
 elif [[ "$my_arch" =~ 64 ]]; then
@@ -89,22 +91,22 @@ if [[ "$my_platform" == "linux" ]]; then
 
   # PLEASE tell me you have lsb_release installed.
   if [[ -z `which lsb_release 2> /dev/null` ]]; then
-    if [[ -n `which apt-get 2> /dev/null` ]]; then    # Debian/Ubuntu/Linux Mint?
+    if [[ -n `which apt-get 2> /dev/null` ]]; then    # Debian/Ubuntu/Linux Mint/PCLinuxOS
       sudo apt-get install -y lsb
-    elif [[ -n `which yum 2> /dev/null` ]]; then      # CentOS/Fedora?
+    elif [[ -n `which yum 2> /dev/null` ]]; then      # CentOS/Fedora
       sudo yum install -y lsb
-    elif [[ -n `which up2date 2> /dev/null` ]]; then  # RHEL?
+    elif [[ -n `which up2date 2> /dev/null` ]]; then  # RHEL
       sudo up2date -i lsb
-    elif [[ -n `which zypper 2> /dev/null` ]]; then   # OpenSUSE/SLES?
+    elif [[ -n `which zypper 2> /dev/null` ]]; then   # OpenSUSE/SLES
       sudo zypper --non-interactive install lsb
-    elif [[ -n `which pacman 2> /dev/null` ]]; then   # ArchLinux?
-      sudo pacman -S --noconfirm lsb
-    elif [[ -n `which slackpkg 2> /dev/null` ]]; then # Slackware?
-      sudo slackpkg install lsb
-    elif [[ -n `which urpmi 2> /dev/null` ]]; then    # Mandriva?
+    elif [[ -n `which pacman 2> /dev/null` ]]; then   # ArchLinux
+      sudo pacman -S --noconfirm lsb-release
+    elif [[ -n `which urpmi 2> /dev/null` ]]; then    # Mandriva/Mageia
       sudo urpmi --auto lsb-release
-    elif [[ -n `which emerge 2> /dev/null` ]]; then   # Gentoo?
-      sudo emerge lsb_release
+    elif [[ -n `which emerge 2> /dev/null` ]]; then   # Gentoo
+      sudo emerge lsb
+    elif [[ -n `which slackpkg 2> /dev/null` ]]; then # Slackware
+      echo "" > /dev/null # Slackware doesn't use LSB
     else
       echo "ERROR: Unknown Package manager in use (what ARE you using??)"
       exit 1
@@ -159,25 +161,32 @@ if [[ "$my_platform" == "linux" ]]; then
     my_pkg_fmt="rpm"
     my_install="zypper --non-interactive install"
     my_local_install="rpm -Uvh"
-  elif [[ -n `echo $lsb_release_output | grep -i "arch"` ]]; then
+  elif [[ -n `echo $lsb_release_output | grep -i "archlinux"` ]]; then
     my_distro="arch"
     my_pkg_fmt="pkg.tar.xz"
     my_install="pacman -S --noconfirm"
     my_local_install="pacman -U --noconfirm"
-  elif [[ -n `echo $lsb_release_output | grep -i "slack"` ]]; then
+  elif test -e "/etc/slackware-version"; then
     my_distro="slackware"
+    my_nickname=`cat /etc/slackware-version`
+    my_major_release=`echo $my_nickanme | awk '{print $2}' | grep -o "[0-9]\+" | head -1`
     if [[ "$my_major_release" -lt "13" ]]; then
       my_pkg_fmt="tgz"
     else
       my_pkg_fmt="txz"
     fi
-    my_install="slackpkg install --yes" # TODO - Correct?
+    my_install="slackpkg -batch=on -default_answer=y install"
     my_local_install="installpkg"
   elif [[ -n `echo $lsb_release_output | grep -i "mandriva"` ]]; then
     my_distro="mandriva"
     my_pkg_fmt="rpm"
     my_install="urpmi --auto "
-    my_local_install="urpmi --auto"
+    my_local_install="rpm -Uvh"
+  elif [[ -n `echo $lsb_release_output | grep -i "mageia"` ]]; then
+    my_distro="mageia"
+    my_pkg_fmt="rpm"
+    my_install="urpmi --auto "
+    my_local_install="rpm -Uvh"
   elif [[ -n `echo $lsb_release_output | grep -i "gentoo"` ]]; then
     my_distro="gentoo"
     my_pkg_fmt="tgz"

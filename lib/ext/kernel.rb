@@ -136,6 +136,7 @@ module Kernel
             when /sparc|sun4u/;          "sparc"
             when /ppc|powerpc/;          "powerpc"
             when /mips/;                 "mips"
+            when /s390/;                 "s390x"
             when /ia64|itanium/;         "itanium"
             when /(x|x?(?:86_)|amd)64/;  "x86_64"
             when /(i[3-6]?|x)86|ia32/;   "i386"
@@ -245,20 +246,24 @@ module Kernel
       # Ensure LSB is installed
       if `which lsb_release 2> /dev/null`.chomp.empty?
         pkg_mgrs = {
-          "apt-get" => "install -y lsb",                # Debian/Ubuntu/Linux Mint
+          "apt-get" => "install -y lsb",                # Debian/Ubuntu/Linux Mint/PCLinuxOS
           "yum" => "install -y lsb",                    # CentOS/Fedora
           "up2date" => "-i lsb",                        # RHEL
           "zypper" => "--non-interactive install lsb",  # OpenSUSE/SLES
-          "pacman" => "-S --noconfirm lsb",             # ArchLinux
-          "slackpkg" => "install --yes lsb",            # Slackware
-          "urpmi" => "--auto lsb-release",              # Mandriva
+          "pacman" => "-S --noconfirm lsb-release",     # ArchLinux
+          "urpmi" => "--auto lsb-release",              # Mandriva/Mageia
           "emerge" => "lsb_release",                    # Gentoo
+          "slackpkg" => "",                             # Slackware NOTE - doesn't have lsb
         }
         ret = false
         pkg_mgrs.each do |mgr,args|
           unless `which #{mgr} 2> /dev/null`.chomp.empty?
-            ret = system("sudo #{mgr} #{args}")
-            break
+            if mgr == "slackpkg" && File.exists?("/etc/slackware-version")
+              ret = true
+            else
+              ret = system("sudo #{mgr} #{args}")
+            end
+            break if ret
           end
         end
         unless ret
@@ -267,35 +272,46 @@ module Kernel
       end
 
       arch_family = proc_arch_miner[nil]
-      install_method = "install"
-      version = `lsb_release -r 2> /dev/null | awk '{print $2}'`.chomp
-      major_release = version.to_i
-      nickname = `lsb_release -c 2> /dev/null | awk '{print $2}'`.chomp
       pkg_arch = arch_family
-      lsb_release_output = `lsb_release -a 2> /dev/null`.chomp
-      distro, pkg_fmt, install, local_install = case lsb_release_output
-        when /(debian|ubuntu|mint)/i
-          pkg_arch = "amd64" if arch_family == "x86_64"
-          [$1, "deb", "apt-get install -y", "dpkg -i"]
-        when /(centos|fedora)/i
-          [$1, "rpm", "yum install -y", "yum localinstall -y"]
-        when /redhat|rhel/i
-          ["RHEL", "rpm", "up2date -i", "rpm -Uvh"]
-        when /open\s*suse/i
-          ["OpenSUSE", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
-        when /suse.*enterprise/i
-          ["SLES", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
-        when /arch/i
-          ["ArchLinux", "pkg.tar.xz", "pacman -S --noconfirm", "pacman -U --noconfirm"]
-        when /slack/i
-          ["Slackware", (major_release < 13 ? "tgz" : "txz"), "slackpkg install --yes", "installpkg"]
-        when /mandriva/i
-          ["Mandriva", "rpm", "urpmi --auto ", "urpmi --auto"]
-        when /gentoo/i
-          ["Gentoo", "tgz", "emerge", ""]
-        else
-          install_method = "build"
-          [`lsb_release -d 2> /dev/null`]
+      install_method = "install"
+      if `which slackpkg 2> /dev/null`.chomp.size > 0 && File.exists?("/etc/slackware-version")
+        # Slackware
+        nickname = File.read("/etc/slackware-version").strip
+        version = nickname.split[1..-1].join(" ")
+        major_release = version.to_i
+        distro = "Slackware"
+        pkg_fmt = major_release < 13 ? "tgz" : "txz"
+        install = "slackpkg -batch=on -default_answer=y install"
+        local_install = "installpkg"
+      else
+        version = `lsb_release -r 2> /dev/null`.strip.split[1..-1].join(" ")
+        major_release = version.to_i
+        nickname = `lsb_release -c 2> /dev/null`.strip.split[1..-1].join(" ")
+        lsb_release_output = `lsb_release -a 2> /dev/null`.chomp
+        distro, pkg_fmt, install, local_install = case lsb_release_output
+          when /(debian|ubuntu|mint)/i
+            pkg_arch = "amd64" if arch_family == "x86_64"
+            [$1, "deb", "apt-get install -y", "dpkg -i"]
+          when /(centos|fedora)/i
+            [$1, "rpm", "yum install -y", "yum localinstall -y"]
+          when /redhat|rhel/i
+            ["RHEL", "rpm", "up2date -i", "rpm -Uvh"]
+          when /open\s*suse/i
+            ["OpenSUSE", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
+          when /suse.*enterprise/i
+            ["SLES", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
+          when /archlinux/i
+            ["ArchLinux", "pkg.tar.xz", "pacman -S --noconfirm", "pacman -U --noconfirm"]
+          when /(mandriva|mageia)/i
+            [$1, "rpm", "urpmi --auto ", "rpm -Uvh"]
+          when /pc\s*linux\s*os/i
+            ["PCLinuxOS", "rpm", "apt-get install -y", "rpm -Uvh"]
+          when /gentoo/i
+            ["Gentoo", "tgz", "emerge", ""]
+          else
+            install_method = "build"
+            [`lsb_release -d 2> /dev/null`.strip.split[1..-1].join(" ")]
+        end
       end
       ret = {
         :platform => "linux",
@@ -481,7 +497,10 @@ module Kernel
     elsif ENV['SSH_CONNECTION']
       return ENV['SSH_CONNECTION'].split(/\s+/)[-2]
     else
-      possible_ips = `ifconfig -a | grep -o "inet \\(addr:\\)\\?[0-9\\.]*" | awk '{print $2}'`.split(/\n/)
+      ip_output = `ifconfig -a 2> /dev/null`.chomp
+      ip_output = `/sbin/ifconfig -a 2> /dev/null`.chomp if ip_output.empty?
+      ip_output = `ip addr 2> /dev/null`.chomp if ip_output.empty?
+      possible_ips = ip_output.scan(/inet (?:addr:)?([0-9\.]+)/).flatten
       possible_ips.reject! { |ip| ip == "127.0.0.1" }
       return possible_ips.first
     end
