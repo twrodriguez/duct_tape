@@ -93,10 +93,10 @@ if [[ "$my_platform" == "linux" ]]; then
   if [[ -z `which lsb_release 2> /dev/null` ]]; then
     if [[ -n `which apt-get 2> /dev/null` ]]; then    # Debian/Ubuntu/Linux Mint/PCLinuxOS
       sudo apt-get install -y lsb
-    elif [[ -n `which yum 2> /dev/null` ]]; then      # CentOS/Fedora
-      sudo yum install -y lsb
-    elif [[ -n `which up2date 2> /dev/null` ]]; then  # RHEL
+    elif [[ -n `which up2date 2> /dev/null` ]]; then  # RHEL/Oracle
       sudo up2date -i lsb
+    elif [[ -n `which yum 2> /dev/null` ]]; then      # CentOS/Fedora/RHEL/Oracle
+      sudo yum install -y lsb
     elif [[ -n `which zypper 2> /dev/null` ]]; then   # OpenSUSE/SLES
       sudo zypper --non-interactive install lsb
     elif [[ -n `which pacman 2> /dev/null` ]]; then   # ArchLinux
@@ -151,6 +151,17 @@ if [[ "$my_platform" == "linux" ]]; then
     my_pkg_fmt="rpm"
     my_install="up2date -i"
     my_local_install="rpm -Uvh"
+  elif test -e "/etc/oracle-release" -o -e "/etc/enterprise-release"; then
+    my_distro="oracle"
+    if test -e "/etc/oracle-release"; then
+      my_nickname=`cat /etc/oracle-release`
+    else
+      my_nickname=`cat /etc/enterprise-release`
+    fi
+    my_major_release=`echo $my_nickname | grep -o "[0-9]\+" | head -1`
+    my_pkg_fmt="rpm"
+    my_install="up2date -i"
+    my_local_install="rpm -Uvh"
   elif [[ -n `echo $lsb_release_output | grep -i "open\s*suse"` ]]; then
     my_distro="opensuse"
     my_pkg_fmt="rpm"
@@ -169,7 +180,7 @@ if [[ "$my_platform" == "linux" ]]; then
   elif test -e "/etc/slackware-version"; then
     my_distro="slackware"
     my_nickname=`cat /etc/slackware-version`
-    my_major_release=`echo $my_nickanme | awk '{print $2}' | grep -o "[0-9]\+" | head -1`
+    my_major_release=`echo $my_nickname | grep -o "[0-9]\+" | head -1`
     if [[ "$my_major_release" -lt "13" ]]; then
       my_pkg_fmt="tgz"
     else

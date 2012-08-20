@@ -77,6 +77,7 @@ module Kernel
       raise "No files found to require for #{full_path.inspect}", caller
     end
 
+    # Require files & return the successful order
     successful_require_order = []
     retry_loop = 0
     last_err = nil
@@ -125,7 +126,6 @@ module Kernel
         %<lscpu %s | grep -i "Architecture" | awk '{print $2}'>, # Linux Alternative
         %<uname -p %s>, # BSD-like
         %<uname -m %s>, # BSD-like Alternate
-#        %<systeminfo %s | findstr /B /C:"System Type:">, # Windows Alternative
         %<reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment" %s>, # Windows
         %<sysinfo %s | grep -o "kernel_\\w*">, # Haiku
       ]
@@ -190,12 +190,14 @@ module Kernel
           end
           unless size.empty?
             mem_size = size.to_i
-            if size =~ /(K|M|G|T)B?$/i
+            if size =~ /(K|M|G|T|P|E)B?$/i
               case $1.upcase
               when "K"; mem_size *= 1024
               when "M"; mem_size *= 1048576
               when "G"; mem_size *= 1073741824
               when "T"; mem_size *= 1099511627776
+              when "P"; mem_size *= 1125899906842624
+              when "E"; mem_size *= 1152921504606846976
               end
             end
             break
@@ -231,9 +233,9 @@ module Kernel
         :n_cpus => proc_count_miner[nil],
         :ram => mem_size_miner[nil],
       })
-      if `which brew 2> /dev/null`.chomp.empty?
+      if File.which("brew")
         @@os_features[:install_cmd] = "brew install"
-      elsif `which port 2> /dev/null`.chomp.empty?
+      elsif File.which("port")
         @@os_features[:install_cmd] = "port install"
       else
         @@os_features[:install_method] = "build"
@@ -244,11 +246,11 @@ module Kernel
     # Linux Miner
     linux_miner = lambda do
       # Ensure LSB is installed
-      if `which lsb_release 2> /dev/null`.chomp.empty?
+      if not File.which("lsb_release")
         pkg_mgrs = {
           "apt-get" => "install -y lsb",                # Debian/Ubuntu/Linux Mint/PCLinuxOS
-          "yum" => "install -y lsb",                    # CentOS/Fedora
-          "up2date" => "-i lsb",                        # RHEL
+          "up2date" => "-i lsb",                        # RHEL/Oracle
+          "yum" => "install -y lsb",                    # CentOS/Fedora/RHEL/Oracle
           "zypper" => "--non-interactive install lsb",  # OpenSUSE/SLES
           "pacman" => "-S --noconfirm lsb-release",     # ArchLinux
           "urpmi" => "--auto lsb-release",              # Mandriva/Mageia
@@ -257,7 +259,7 @@ module Kernel
         }
         ret = false
         pkg_mgrs.each do |mgr,args|
-          unless `which #{mgr} 2> /dev/null`.chomp.empty?
+          if File.which(mgr)
             if mgr == "slackpkg" && File.exists?("/etc/slackware-version")
               ret = true
             else
@@ -274,7 +276,7 @@ module Kernel
       arch_family = proc_arch_miner[nil]
       pkg_arch = arch_family
       install_method = "install"
-      if `which slackpkg 2> /dev/null`.chomp.size > 0 && File.exists?("/etc/slackware-version")
+      if File.exists?("/etc/slackware-version") || File.which("slackpkg")
         # Slackware
         nickname = File.read("/etc/slackware-version").strip
         version = nickname.split[1..-1].join(" ")
@@ -283,6 +285,15 @@ module Kernel
         pkg_fmt = major_release < 13 ? "tgz" : "txz"
         install = "slackpkg -batch=on -default_answer=y install"
         local_install = "installpkg"
+      elsif File.exists?("/etc/oracle-release") || File.exists?("/etc/enterprise-release")
+        if File.exists?("/etc/oracle-release")
+          nickname = File.read("/etc/oracle-release").strip
+        else
+          nickname = File.read("/etc/enterprise-release").strip
+        end
+        version = nickname.match(/\d+(\.\d+)?/)[0]
+        major_release = version.to_i
+        distro, pkg_fmt, install, local_install = "Oracle", "rpm", "up2date -i", "rpm -Uvh"
       else
         version = `lsb_release -r 2> /dev/null`.strip.split[1..-1].join(" ")
         major_release = version.to_i
@@ -294,6 +305,8 @@ module Kernel
             [$1, "deb", "apt-get install -y", "dpkg -i"]
           when /(centos|fedora)/i
             [$1, "rpm", "yum install -y", "yum localinstall -y"]
+          when /oracle/i
+            ["Oracle", "rpm", "up2date -i", "rpm -Uvh"]
           when /redhat|rhel/i
             ["RHEL", "rpm", "up2date -i", "rpm -Uvh"]
           when /open\s*suse/i
@@ -338,7 +351,7 @@ module Kernel
       version = `uname -r`.strip
       nickname = "#{distro} #{version.split('.')[-1]}"
       if distro == "OpenSolaris"
-        nickname = `cat /etc/release | grep -o "OpenSolaris [a-zA-Z0-9.]\\+"`.strip
+        nickname = File.read("/etc/release").match(/OpenSolaris [a-zA-Z0-9.]\+/i)[0].strip
       end
       @@os_features.merge!({
         :platform => "solaris",
@@ -372,8 +385,8 @@ module Kernel
       })
     end
 
-    # Haiku Miner
-    haiku_miner = lambda do
+    # BeOS Miner
+    beos_miner = lambda do
       version = `uname -r`.strip
       distro = `uname -s`.strip
       @@os_features.merge!({
@@ -433,7 +446,8 @@ module Kernel
       when /solaris/;   solaris_miner[]
       when /bsd/;       bsd_miner[]
       when /dragonfly/; bsd_miner[]
-      when /haiku/;     haiku_miner[]
+      when /haiku/;     beos_miner[]
+      when /beos/;      beos_miner[]
       end
     end
 
@@ -497,9 +511,13 @@ module Kernel
     elsif ENV['SSH_CONNECTION']
       return ENV['SSH_CONNECTION'].split(/\s+/)[-2]
     else
-      ip_output = `ifconfig -a 2> /dev/null`.chomp
-      ip_output = `/sbin/ifconfig -a 2> /dev/null`.chomp if ip_output.empty?
-      ip_output = `ip addr 2> /dev/null`.chomp if ip_output.empty?
+      if File.which("ifconfig")
+        ip_output = `ifconfig -a 2> /dev/null`.chomp
+      elsif File.executable?("/sbin/ifconfig")
+        ip_output = `/sbin/ifconfig -a 2> /dev/null`.chomp
+      else
+        ip_output = `ip addr 2> /dev/null`.chomp
+      end
       possible_ips = ip_output.scan(/inet (?:addr:)?([0-9\.]+)/).flatten
       possible_ips.reject! { |ip| ip == "127.0.0.1" }
       return possible_ips.first

@@ -1,4 +1,18 @@
 class File
+  # Cross-platform way of finding an executable in the $PATH.
+  #
+  #   which('ruby') #=> /usr/bin/ruby
+  def self.which(cmd)
+    exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+    ENV['PATH'].split(PATH_SEPARATOR).each do |path|
+      exts.each do |ext|
+        exe = join(path, "#{cmd}#{ext}")
+        return exe if executable?(exe)
+      end
+    end
+    return nil
+  end
+
   # Given an absolute path, determine the relative path based on pwd
   def self.relative_path(abs_path)
     Dir.relative_path(abs_path)

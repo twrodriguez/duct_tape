@@ -11,7 +11,7 @@ end
 # Hash#deep_merge!
 #
 describe Hash, "#deep_merge!" do
-  it "remains unchanged" do
+  it "changes" do
     # TODO
   end
 end
@@ -30,6 +30,42 @@ end
 #
 describe Hash, "#not_empty?" do
   it "remains unchanged" do
+    # TODO
+  end
+end
+
+#
+# Hash#select_keys
+#
+describe Hash, "#select_keys" do
+  it "remains unchanged" do
+    # TODO
+  end
+end
+
+#
+# Hash#select_keys!
+#
+describe Hash, "#select_keys!" do
+  it "changes" do
+    # TODO
+  end
+end
+
+#
+# Hash#reject_keys
+#
+describe Hash, "#reject_keys" do
+  it "remains unchanged" do
+    # TODO
+  end
+end
+
+#
+# Hash#reject_keys!
+#
+describe Hash, "#reject_keys!" do
+  it "changes" do
     # TODO
   end
 end
