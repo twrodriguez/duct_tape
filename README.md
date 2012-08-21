@@ -42,7 +42,8 @@ Core Extensions
 ---------------
 
 Array, TrueClass, FalseClass, DateTime, Dir, File, Hash, Kernel, Numeric, Object,
-Range, Regexp, String, and Time have patches in duct_tape. Here are a few examples:
+Pathname, Range, Regexp, String, Symbol, and Time have patches in duct_tape. Here
+are a few examples:
 
     # Array
     ["a","b","c"].to_h                        #=> {0=>"a", 1=>"b", 2=>"c"}
@@ -69,7 +70,8 @@ Range, Regexp, String, and Time have patches in duct_tape. Here are a few exampl
     (1..7).chunk(3)                           #=> [[1, 2, 3], [4, 5, 6], [7]]
 
     # Hash
-    {1=>{2=>[3]}}.deep_merge({1=>{2=>[4]}})   #=> {1=>{2=>[3, 4]}}
+    {1=>{2=>3}}.deep_merge({1=>{3=>4}})       #=> {1=>{2=>3, 3=>4}}
+    {1=>[2, 3]}}.deep_merge({1=>[3, 4]}})     #=> {1=>[2, 3, 4]}
     {1=>2, 2=>3, 3=>4, 4=>5}.chunk(2)         #=> [{1=>2, 2=>3}, {3=>4, 4=>5}]
     {1=>{2=>3}, 2=>{3=>4}} & {2=>4}           #=> {2=>{3=>4}}
     {1=>{2=>3}, 2=>{3=>4}} & [2]              #=> {2=>{3=>4}}
@@ -81,6 +83,9 @@ Range, Regexp, String, and Time have patches in duct_tape. Here are a few exampl
     "hello" =~ /ll/                           #=> 2
     "hello" =~ /ll/.invert                    #=> nil
     "hello" =~ /ll/.invert.invert             #=> 2
+
+    # Pathname
+    Pathname.which("which")                   #=> #<Pathname:/bin/which>
 
     # String
     "lorem ipsum".word_wrap(3)                #=> "lor\nem\nips\num\n"

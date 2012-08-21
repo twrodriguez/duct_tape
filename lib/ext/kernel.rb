@@ -35,6 +35,7 @@ module Kernel
 
   def automatic_require(full_path=nil)
     some_not_included = true
+    arg_passed = !full_path.nil?
     type_assert(full_path, String, Array, nil)
 
     # Discover filename and directory of function that called automatic_require
@@ -51,30 +52,30 @@ module Kernel
 
     # If nothing was passed, use the basename without ".rb" as the require path
     if full_path.nil?
-      full_path = File.join([caller_dir, caller_file_basename].compact)
+      full_path = Pathname.join([caller_dir, caller_file_basename].compact)
     end
 
     # Discover files
     files = []
     [*full_path].each do |path|
       try_these = [
-        path,
-        File.join([caller_dir, path].compact),
-        File.join([caller_dir, caller_file_basename, path].compact)
-      ]
+        Pathname.new(path),
+        Pathname.join([caller_dir, path].compact),
+        Pathname.join([caller_dir, caller_file_basename, path].compact)
+      ].uniq
       try_these.each do |possibility|
-        possibility = File.expand_path(possibility)
-        if File.exist?(possibility)
-          if File.file?(possibility)
-            files |= [possibility]
-          elsif File.directory?(possibility)
-            files |= Dir[File.join(possibility, "*.rb")]
+        possibility = possibility.expand_path
+        if possibility.exist?
+          if possibility.file?
+            files |= [possibility.to_s]
+          elsif possibility.directory?
+            files |= Dir[possibility + "*.rb"]
           end
         end
       end
     end
-    if files.empty?
-      raise "No files found to require for #{full_path.inspect}", caller
+    if files.empty? && arg_passed
+      raise RuntimeError, "No files found to require for #{full_path.inspect}", caller
     end
 
     # Require files & return the successful order
@@ -233,9 +234,9 @@ module Kernel
         :n_cpus => proc_count_miner[nil],
         :ram => mem_size_miner[nil],
       })
-      if File.which("brew")
+      if Pathname.which("brew")
         @@os_features[:install_cmd] = "brew install"
-      elsif File.which("port")
+      elsif Pathname.which("port")
         @@os_features[:install_cmd] = "port install"
       else
         @@os_features[:install_method] = "build"
@@ -246,7 +247,7 @@ module Kernel
     # Linux Miner
     linux_miner = lambda do
       # Ensure LSB is installed
-      if not File.which("lsb_release")
+      if not Pathname.which("lsb_release")
         pkg_mgrs = {
           "apt-get" => "install -y lsb",                # Debian/Ubuntu/Linux Mint/PCLinuxOS
           "up2date" => "-i lsb",                        # RHEL/Oracle
@@ -259,7 +260,7 @@ module Kernel
         }
         ret = false
         pkg_mgrs.each do |mgr,args|
-          if File.which(mgr)
+          if Pathname.which(mgr)
             if mgr == "slackpkg" && File.exists?("/etc/slackware-version")
               ret = true
             else
@@ -276,7 +277,7 @@ module Kernel
       arch_family = proc_arch_miner[nil]
       pkg_arch = arch_family
       install_method = "install"
-      if File.exists?("/etc/slackware-version") || File.which("slackpkg")
+      if File.exists?("/etc/slackware-version") || Pathname.which("slackpkg")
         # Slackware
         nickname = File.read("/etc/slackware-version").strip
         version = nickname.split[1..-1].join(" ")
@@ -496,6 +497,11 @@ module Kernel
 
   # Detect the most likely candidate for a public-facing IPv4 Address
   def detect_reachable_ip
+    if RUBY_VERSION >= "1.9.2"
+      require 'socket'
+      possible_ips = Socket.ip_address_list.reject { |ip| !ip.ipv4? || ip.ipv4_loopback? }
+      return possible_ips.first
+    end
     if detect_os[:platform] == "windows"
       output = `ipconfig`
       ip_regex = /IP(?:v4)?.*?([0-9]+(?:\.[0-9]+){3})/i
@@ -511,7 +517,7 @@ module Kernel
     elsif ENV['SSH_CONNECTION']
       return ENV['SSH_CONNECTION'].split(/\s+/)[-2]
     else
-      if File.which("ifconfig")
+      if Pathname.which("ifconfig")
         ip_output = `ifconfig -a 2> /dev/null`.chomp
       elsif File.executable?("/sbin/ifconfig")
         ip_output = `/sbin/ifconfig -a 2> /dev/null`.chomp

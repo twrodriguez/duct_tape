@@ -1,21 +1,38 @@
+require 'pathname'
+
 class File
-  # Cross-platform way of finding an executable in the $PATH.
-  #
-  #   which('ruby') #=> /usr/bin/ruby
-  def self.which(cmd)
-    exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
-    ENV['PATH'].split(PATH_SEPARATOR).each do |path|
-      exts.each do |ext|
-        exe = join(path, "#{cmd}#{ext}")
-        return exe if executable?(exe)
+  def self.classify_file(name)
+    path = Pathname.new(name).expand_path
+    if path.socket?
+      if defined?(::UNIXSocket)
+        ::UNIXSocket.new(path)
+      else
+        :socket
       end
+    elsif path.symlink?
+      link = readlink(name)
+      link = File.join(File.dirname(name), link) if link !~ /\A#{SEPARATOR}/
+#      {:symlink => classify_file(link)}
+      classify_file(link)
+    elsif directory?(name)
+      readable?(name) ? Dir.new(name) : :unreadable_directory
+    elsif file?(name)
+      readable?(name) ? (open(name) { |f| f }) : :unreadable_file
+    elsif blockdev?(name)
+      :block_device
+    elsif chardev?(name)
+      :char_device
     end
-    return nil
+  rescue Errno::ECONNREFUSED
+    :unreadable_socket
+  rescue Errno::EPROTOTYPE
+    :socket
+  rescue Errno::EACCES
+    :unreadable_item
   end
 
-  # Given an absolute path, determine the relative path based on pwd
-  def self.relative_path(abs_path)
-    Dir.relative_path(abs_path)
+  def self.relative_path(abs_path, pwd=Dir.pwd)
+    Dir.relative_path(abs_path, pwd)
   end
 
   def self.absolute_path(path)
@@ -44,5 +61,9 @@ class File
 
   def readable?
     File.readable?(self.path)
+  end
+
+  def executable?
+    File.executable?(self.path)
   end
 end
