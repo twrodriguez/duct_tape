@@ -74,11 +74,13 @@ for FILE in $commited_files; do
     filetype=`file -b $FILE`
     if [[ -n "$whitespace_modification" ]]; then
       if [[ "$filetype" =~ "text" ]]; then
-        if [[ -n `grep "\\s\\s*$" $FILE` ]]; then whitespace="$whitespace $FILE"; fi
+        if [[ -n `grep "\\s\\s*$\\|^ *$" $FILE` ]]; then whitespace="$whitespace $FILE"; fi
         # Remove trailing whitespace
         sed -i "s/\\s\\s*$//g" $FILE
         # Remove tabs
         sed -i "s/\t/  /g" $FILE
+        # Remove empty line at EOF
+        sed -i '${/^ *$/d;}' $FILE
       fi
     fi
 

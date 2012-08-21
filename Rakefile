@@ -11,11 +11,8 @@ begin
     gemspec.email = ["tw.rodriguez@gmail.com"]
     gemspec.homepage = "http://github.com/twrodriguez/duct_tape"
     gemspec.authors = ["Tim Rodriguez"]
-    gemspec.add_development_dependency('jeweler')
-    gemspec.add_development_dependency('bundler')
-    gemspec.add_development_dependency('rspec')
-    gemspec.add_dependency('facets')
-    gemspec.add_dependency('algorithms')
+    gemspec.extensions = 'ext/mkrf_conf.rb'
+    # gemspec dependencies should be pulled in via Gemfile
     gemspec.required_ruby_version = '>= 1.8.7'
     gemspec.license = 'Simplified BSD'
     gemspec.version = version

@@ -460,15 +460,13 @@ module Kernel
     @@interpreter ||= nil
     return @@interpreter if @@interpreter
 
-    var = ""
-    if ::Object::const_defined?("RUBY_ENGINE")
-      var = ::Object::RUBY_ENGINE.downcase
-    else
-      var = ::RbConfig::CONFIG['RUBY_INSTALL_NAME'].downcase
+    var = ::RbConfig::CONFIG['RUBY_INSTALL_NAME'].downcase
+    if defined?(::RUBY_ENGINE)
+      var << " " << ::RUBY_ENGINE.downcase
     end
-    # TODO - MacRuby
     @@interpreter = case var
       when /jruby/;     "jruby"
+      when /macruby/;   "macruby"
       when /rbx/;       "rubinius"
       when /maglev/;    "maglev"
       when /ir/;        "ironruby"
@@ -488,6 +486,7 @@ module Kernel
   def detect_interpreter_language
     @@interpreter_language ||= case detect_interpreter
       when "jruby";             "java"
+      when "macruby";           "objective-c"
       when "rubinius";          "c++"
       when "maglev";            "smalltalk"
       when "ironruby";          ".net"

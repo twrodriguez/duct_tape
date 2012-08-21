@@ -9,9 +9,10 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Rodriguez"]
-  s.date = "2012-07-21"
+  s.date = "2012-08-21"
   s.description = "A bunch of useful patches for core classes"
   s.email = ["tw.rodriguez@gmail.com"]
+  s.extensions = ["ext/mkrf_conf.rb"]
   s.extra_rdoc_files = [
     "LICENSE",
     "README.md"
@@ -24,11 +25,13 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "duct_tape.gemspec",
+    "ext/mkrf_conf.rb",
     "git_hooks/env_vars.sh",
     "git_hooks/post-commit",
     "git_hooks/post-merge",
     "git_hooks/pre-commit",
     "install_git_hooks.sh",
+    "lib/algorithms/containers.rb",
     "lib/algorithms/containers/heap.rb",
     "lib/algorithms/containers/priority_queue.rb",
     "lib/duct_tape.rb",
@@ -42,15 +45,37 @@ Gem::Specification.new do |s|
     "lib/ext/kernel.rb",
     "lib/ext/numeric.rb",
     "lib/ext/object.rb",
+    "lib/ext/pathname.rb",
+    "lib/ext/range.rb",
     "lib/ext/regexp.rb",
     "lib/ext/string.rb",
-    "lib/ext/time.rb"
+    "lib/ext/symbol.rb",
+    "lib/ext/time.rb",
+    "test/algorithms/containers/heap.rb",
+    "test/algorithms/containers/priority_queue.rb",
+    "test/duct_tape.rb",
+    "test/duct_tape/autoassociative_array.rb",
+    "test/ext/array.rb",
+    "test/ext/boolean.rb",
+    "test/ext/datetime.rb",
+    "test/ext/dir.rb",
+    "test/ext/file.rb",
+    "test/ext/hash.rb",
+    "test/ext/kernel.rb",
+    "test/ext/numeric.rb",
+    "test/ext/object.rb",
+    "test/ext/pathname.rb",
+    "test/ext/range.rb",
+    "test/ext/regexp.rb",
+    "test/ext/string.rb",
+    "test/ext/symbol.rb",
+    "test/ext/time.rb"
   ]
   s.homepage = "http://github.com/twrodriguez/duct_tape"
   s.licenses = ["Simplified BSD"]
   s.require_paths = ["lib"]
   s.required_ruby_version = Gem::Requirement.new(">= 1.8.7")
-  s.rubygems_version = "1.8.11"
+  s.rubygems_version = "1.8.24"
   s.summary = "A bunch of useful patches for core classes"
 
   if s.respond_to? :specification_version then
@@ -58,37 +83,19 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<facets>, [">= 0"])
-      s.add_runtime_dependency(%q<algorithms>, [">= 0"])
       s.add_development_dependency(%q<rake>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, [">= 0"])
       s.add_development_dependency(%q<rspec>, [">= 0"])
-      s.add_development_dependency(%q<jeweler>, [">= 0"])
-      s.add_development_dependency(%q<bundler>, [">= 0"])
-      s.add_development_dependency(%q<rspec>, [">= 0"])
-      s.add_runtime_dependency(%q<facets>, [">= 0"])
-      s.add_runtime_dependency(%q<algorithms>, [">= 0"])
     else
       s.add_dependency(%q<facets>, [">= 0"])
-      s.add_dependency(%q<algorithms>, [">= 0"])
       s.add_dependency(%q<rake>, [">= 0"])
       s.add_dependency(%q<jeweler>, [">= 0"])
       s.add_dependency(%q<rspec>, [">= 0"])
-      s.add_dependency(%q<jeweler>, [">= 0"])
-      s.add_dependency(%q<bundler>, [">= 0"])
-      s.add_dependency(%q<rspec>, [">= 0"])
-      s.add_dependency(%q<facets>, [">= 0"])
-      s.add_dependency(%q<algorithms>, [">= 0"])
     end
   else
     s.add_dependency(%q<facets>, [">= 0"])
-    s.add_dependency(%q<algorithms>, [">= 0"])
     s.add_dependency(%q<rake>, [">= 0"])
     s.add_dependency(%q<jeweler>, [">= 0"])
     s.add_dependency(%q<rspec>, [">= 0"])
-    s.add_dependency(%q<jeweler>, [">= 0"])
-    s.add_dependency(%q<bundler>, [">= 0"])
-    s.add_dependency(%q<rspec>, [">= 0"])
-    s.add_dependency(%q<facets>, [">= 0"])
-    s.add_dependency(%q<algorithms>, [">= 0"])
   end
 end
