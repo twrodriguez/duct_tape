@@ -9,18 +9,19 @@ rescue NoMethodError
 end
 
 inst = Gem::DependencyInstaller.new
-begin
-  engine = ::RbConfig::CONFIG['RUBY_INSTALL_NAME']
-  if defined?(RUBY_ENGINE)
-    engine << " " << RUBY_ENGINE
-  end
-  # JRuby can have issues compiling algorithms' extensions
-  # Maglev, IronRuby, and MacRuby are untested
-  if engine !~ /jruby|maglev|ir|macruby/i
+engine = ::RbConfig::CONFIG['RUBY_INSTALL_NAME']
+if defined?(RUBY_ENGINE)
+  engine << " " << RUBY_ENGINE
+end
+# JRuby can have issues compiling algorithms' extensions
+# Maglev, IronRuby, and MacRuby are untested
+if engine !~ /jruby|maglev|ir|macruby/i
+  begin
+    require 'algorithms'
+  rescue LoadError
+    puts "No JRuby, Maglev, IronRuby, or MacRuby detected, installing 'algorithms'..."
     inst.install "algorithms"
   end
-rescue
-  exit(1)
 end
 
 # create dummy rakefile to indicate success

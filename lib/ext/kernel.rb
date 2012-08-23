@@ -1,4 +1,5 @@
 require 'rbconfig'
+require 'stringio'
 
 module Kernel
   private
@@ -13,6 +14,18 @@ module Kernel
     (caller[1..-1].detect { |c| c =~ /`([^']*)'/ } && $1).to_sym
   rescue NoMethodError
     nil
+  end
+
+  def calling_method_file(idx=1)
+    c = caller[idx]
+    return nil unless c.rindex(/:\d+(:in `.*')?$/)
+    file = $`
+    return nil if /\A\((.*)\)/ =~ file
+    file
+  end
+
+  def calling_method_dirname(idx=1)
+    File.dirname(calling_method_file(idx+1))
   end
 
   def tty?
@@ -39,15 +52,11 @@ module Kernel
     type_assert(full_path, String, Array, nil)
 
     # Discover filename and directory of function that called automatic_require
-    c = caller.first
     caller_dir = Dir.pwd
     caller_file_basename = nil
-    if c.rindex(/:\d+(:in `.*')?$/)
-      caller_file = $`
-      unless /\A\((.*)\)/ =~ caller_file # eval, etc.
-        caller_dir = File.dirname(caller_file)
-        caller_file_basename = File.basename(caller_file, ".rb")
-      end
+    if caller_file = calling_method_file
+      caller_dir = File.dirname(caller_file)
+      caller_file_basename = File.basename(caller_file, ".rb")
     end
 
     # If nothing was passed, use the basename without ".rb" as the require path
@@ -499,7 +508,7 @@ module Kernel
     if RUBY_VERSION >= "1.9.2"
       require 'socket'
       possible_ips = Socket.ip_address_list.reject { |ip| !ip.ipv4? || ip.ipv4_loopback? }
-      return possible_ips.first
+      return possible_ips.first.to_s
     end
     if detect_os[:platform] == "windows"
       output = `ipconfig`
@@ -551,5 +560,22 @@ module Kernel
     end
     @required_gems ||= []
     @required_gems |= args
+  end
+
+  # Check if a gem is installed. Returns version string if installed, nil otherwise
+  def gem_installed?(gem)
+    begin
+      old_stderr, $stderr = $stderr, StringIO.new
+      if defined?(::Gem::Specification) && ::Gem::Specification.respond_to?(:find_by_name)
+        gem_spec = ::Gem::Specification.find_by_name(gem)
+      else
+        gem_spec = ::Gem::GemPathSearcher.new.find(gem)
+      end
+      gem_spec.nil? ? nil : gem_spec.version.to_s
+    rescue LoadError
+      nil
+    ensure
+      $stderr = old_stderr
+    end
   end
 end

@@ -1,9 +1,11 @@
 module Containers
   class Heap
     def to_a
-      @stored.to_a.sort { |a,b|
-        (@compare_fn[a[0],b[0]] ? -1 : 1)
-      }.map { |k,v| v.map { |f| f.value } }.flatten
+      ret = @stored.to_a
+      ret.sort! { |a,b| (@compare_fn[a[0],b[0]] ? -1 : 1) }
+      ret.map! { |k,v| v.map { |f| f.value } }
+      ret.flatten!
+      ret
     end
 
     def each(*args, &block)

@@ -93,7 +93,7 @@ are a few examples:
     "%{x} %{y}" % {:x => 3, :y => 4}          #=> "3 4"
 
     # Time
-    Time.duration(61621)                      #=> "17 hours, 7 minutes and 1 second"
+    Time.duration(61621)                      #=> "17 hours, 7 minutes, and 1 second"
 
 Platform Detection
 ------------------
@@ -177,6 +177,17 @@ of partial matches can explode if abused in the worst case.
 
 Partial matches return the set of arrays with the most matched elements from the
 query.
+
+Contributing to duct_tape
+-------------------------
+
+- Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
+- Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
+- Fork the project.
+- Start a feature/bugfix branch.
+- Commit and push until you are happy with your contribution.
+- Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
+- Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
 
 License
 -------

@@ -1,23 +1,35 @@
 require 'rubygems'
 require 'rake'
+require 'jeweler'
 
-begin
-  require 'jeweler'
-  version = File.read(File.expand_path("../VERSION",__FILE__)).strip
-  Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "duct_tape"
-    gemspec.summary = "A bunch of useful patches for core classes"
-    gemspec.description = "A bunch of useful patches for core classes"
-    gemspec.email = ["tw.rodriguez@gmail.com"]
-    gemspec.homepage = "http://github.com/twrodriguez/duct_tape"
-    gemspec.authors = ["Tim Rodriguez"]
-    gemspec.extensions = 'ext/mkrf_conf.rb'
-    # gemspec dependencies should be pulled in via Gemfile
-    gemspec.required_ruby_version = '>= 1.8.7'
-    gemspec.license = 'Simplified BSD'
-    gemspec.version = version
-  end
-  Jeweler::GemcutterTasks.new
-rescue LoadError
-  puts "Jeweler not available. Install it with: 'gem install jeweler' or 'bundle' "
+version = File.read(File.expand_path("../VERSION",__FILE__)).strip
+Jeweler::Tasks.new do |gem|
+  gem.name = "duct_tape"
+  gem.summary = "A bunch of useful patches for core Ruby classes"
+  gem.description = "A general-purpose utility library for Ruby"
+  gem.email = ["tw.rodriguez@gmail.com"]
+  gem.homepage = "http://github.com/twrodriguez/duct_tape"
+  gem.authors = ["Tim Rodriguez"]
+  gem.extensions = 'ext/mkrf_conf.rb'
+  gem.required_ruby_version = '>= 1.8.7'
+  gem.license = 'Simplified BSD'
+  gem.version = version
+  # dependencies defined in Gemfile
 end
+Jeweler::RubygemsDotOrgTasks.new
+
+require 'rspec/core'
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec) do |spec|
+  spec.pattern = FileList['spec/**/*_spec.rb']
+end
+
+RSpec::Core::RakeTask.new(:rcov) do |spec|
+  spec.pattern = 'spec/**/*_spec.rb'
+  spec.rcov = true
+end
+
+task :default => :spec
+
+require 'yard'
+YARD::Rake::YardocTask.new

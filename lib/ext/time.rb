@@ -19,7 +19,7 @@ class Time
     str_ary << "#{mins % 60} #{min_str}" if mins > 0
     str_ary << "#{secs % 60} #{sec_str}" if secs > 0
     if str_ary.size > 2
-      [str_ary[0..-2].join(", "), str_ary[-1]].join(" and ")
+      [str_ary[0..-2].join(", "), str_ary[-1]].join(", and ")
     else
       str_ary.join(" and ")
     end

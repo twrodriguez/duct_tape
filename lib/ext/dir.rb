@@ -2,8 +2,8 @@ require 'pathname'
 
 class Dir
   # Determine the relative path based on pwd
-  def self.relative_path(abs_path, pwd=Dir.pwd)
-    Pathname.new(abs_path).expand_path.relative_path_from(Pathname.new(pwd)).to_s
+  def self.relative_path(abs_path, from=Dir.pwd)
+    Pathname.new(abs_path).expand_path.relative_path_from(Pathname.new(from)).to_s
   end
 
   def self.absolute_path(path)

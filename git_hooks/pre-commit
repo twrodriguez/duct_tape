@@ -74,7 +74,7 @@ for FILE in $commited_files; do
     filetype=`file -b $FILE`
     if [[ -n "$whitespace_modification" ]]; then
       if [[ "$filetype" =~ "text" ]]; then
-        if [[ -n `grep "\\s\\s*$\\|^ *$" $FILE` ]]; then whitespace="$whitespace $FILE"; fi
+        if [[ -n `grep "\\s\\s*$" $FILE` ]]; then whitespace="$whitespace $FILE"; fi
         # Remove trailing whitespace
         sed -i "s/\\s\\s*$//g" $FILE
         # Remove tabs
@@ -167,10 +167,10 @@ for FILE in $commited_files; do
     if [[ "$FILE" =~ .*\.json$ ]]; then
       if [[ -n `gem list | grep "json" 2> /dev/null` ]]; then
         if [[ "$fail" -eq 0 || -z "$fail" ]]; then
-          ruby -rrubygems -rjson "JSON::parse(IO.read('$FILE'))" 1> /dev/null; fail=$?
+          ruby -rrubygems -rjson -e "JSON::parse(IO.read('$FILE'))" 1> /dev/null; fail=$?
           if [[ "$fail" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
         else
-          ruby -rrubygems -rjson "JSON::parse(IO.read('$FILE'))" 1> /dev/null
+          ruby -rrubygems -rjson -e "JSON::parse(IO.read('$FILE'))" 1> /dev/null
           if [[ "$?" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
         fi
       else
@@ -182,10 +182,10 @@ for FILE in $commited_files; do
     if [[ "$FILE" =~ .*\.yaml$ ]]; then
       if [[ -n `which ruby 2> /dev/null` ]]; then
         if [[ "$fail" -eq 0 || -z "$fail" ]]; then
-          ruby -ryaml "YAML::load(IO.read('$FILE'))" 1> /dev/null; fail=$?
+          ruby -ryaml -e "begin; YAML::load(IO.read('$FILE')); rescue Exception => e; raise if e.is_a?(SyntaxError); end" 1> /dev/null; fail=$?
           if [[ "$fail" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
         else
-          ruby -ryaml "YAML::load(IO.read('$FILE'))" 1> /dev/null
+          ruby -ryaml -e "begin; YAML::load(IO.read('$FILE')); rescue Exception => e; raise if e.is_a?(SyntaxError); end" 1> /dev/null
           if [[ "$?" -ne 0 ]]; then echo "Syntax Error found in '$FILE'"; fi
         fi
       else
