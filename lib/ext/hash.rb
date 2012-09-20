@@ -37,30 +37,36 @@ class Hash
   end
   alias_method :to_hash, :to_h
 
-  def select_keys(other)
+  def select_keys(other, &block)
     target = dup
-    target.select_keys!(other)
+    target.select_keys!(other, &block)
     target
   end
   alias_method :&, :select_keys
 
-  def select_keys!(other)
+  def select_keys!(other, &block)
     type_assert(other, Array, Hash)
-    other = other.keys if Hash === other
-    self.reject! { |key,val| !other.include?(key) }
+    unless block_given?
+      other = other.keys if Hash === other
+      block = proc { |k| !other.include?(k) }
+    end
+    self.reject! { |key,val| !block[key] }
   end
 
-  def reject_keys(other)
+  def reject_keys(other, &block)
     target = dup
-    target.reject_keys!(other)
+    target.reject_keys!(other, &block)
     target
   end
   alias_method :-, :reject_keys
 
-  def reject_keys!(other)
+  def reject_keys!(other, &block)
     type_assert(other, Array, Hash)
-    other = other.keys if Hash === other
-    self.reject! { |key,val| other.include?(key) }
+    unless block_given?
+      other = other.keys if Hash === other
+      block = proc { |k| other.include?(k) }
+    end
+    self.reject! { |key,val| block[key] }
   end
 
   def chunk(max_length=nil, &block)

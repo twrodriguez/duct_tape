@@ -47,4 +47,8 @@ class String
   def to_time
     Time.parse(self)
   end
+
+  def to_const
+    split("::").inject(::Object) { |k,c| k.const_get(c) }
+  end
 end

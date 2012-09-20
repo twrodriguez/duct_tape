@@ -1,5 +1,10 @@
 source "http://rubygems.org"
-gem "rake", :group => :development
-gem "jeweler", :group => :development
-gem "rspec", :group => :development
+
+group :development do
+  gem "rake"
+  gem "yard"
+  gem "jeweler"
+  gem "rspec"
+end
+
 gem "facets"

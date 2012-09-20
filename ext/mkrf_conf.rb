@@ -24,6 +24,12 @@ if engine !~ /jruby|maglev|ir|macruby/i
   end
 end
 
+if RUBY_VERSION >= "1.9"
+  #inst.install "simplecov"
+else
+  #inst.install "rcov"
+end
+
 # create dummy rakefile to indicate success
 f = File.open(File.join(File.dirname(__FILE__), "Rakefile"), "w")
 f.write("task :default\n")

@@ -25,7 +25,8 @@ module Kernel
   end
 
   def calling_method_dirname(idx=1)
-    File.dirname(calling_method_file(idx+1))
+    found = calling_method_file(idx+1)
+    found.nil? ? found : File.dirname(found)
   end
 
   def tty?
@@ -128,6 +129,239 @@ module Kernel
     return @@os_features if @@os_features
     @@os_features ||= {}
 
+    # Mac Miner
+    mac_miner = lambda do
+      version = `sw_vers -productVersion`.match(/\d+\.\d+\.\d+/)[0]
+      @@os_features.merge!({
+        :platform => "darwin",
+        :os_distro => "Mac OSX",
+        :os_version => version,
+        :os_nickname => case version
+          when /^10.0/; "Cheetah"
+          when /^10.1/; "Puma"
+          when /^10.2/; "Jaguar"
+          when /^10.3/; "Panther"
+          when /^10.4/; "Tiger"
+          when /^10.5/; "Leopard"
+          when /^10.6/; "Snow Leopard"
+          when /^10.7/; "Lion"
+          when /^10.8/; "Mountain Lion"
+          else; "Unknown Version of OSX"
+        end,
+        :install_method => "install",
+        :hostname => `hostname`.chomp,
+      })
+      if Pathname.which("brew")
+        @@os_features[:install_cmd] = "brew install"
+      elsif Pathname.which("port")
+        @@os_features[:install_cmd] = "port install"
+      else
+        @@os_features[:install_method] = "build"
+      end
+      @@os_features
+    end
+
+    # Linux Miner
+    linux_miner = lambda do
+      # Ensure LSB is installed
+      if not Pathname.which("lsb_release")
+        pkg_mgrs = {
+          "apt-get" => "install -y lsb",                # Debian/Ubuntu/Linux Mint/PCLinuxOS
+          "up2date" => "-i lsb",                        # RHEL/Oracle
+          "yum" => "install -y lsb",                    # CentOS/Fedora/RHEL/Oracle
+          "zypper" => "--non-interactive install lsb",  # OpenSUSE/SLES
+          "pacman" => "-S --noconfirm lsb-release",     # ArchLinux
+          "urpmi" => "--auto lsb-release",              # Mandriva/Mageia
+          "emerge" => "lsb_release",                    # Gentoo
+          "slackpkg" => "",                             # Slackware NOTE - doesn't have lsb
+        }
+        ret = false
+        pkg_mgrs.each do |mgr,args|
+          if Pathname.which(mgr)
+            if mgr == "slackpkg" && File.exists?("/etc/slackware-version")
+              ret = true
+            else
+              ret = system("sudo #{mgr} #{args}")
+            end
+            break if ret
+          end
+        end
+        unless ret
+          $stderr.puts "Unknown Package manager in use (what ARE you using??)"
+        end
+      end
+
+      arch_family = `arch 2> /dev/null`.chomp
+      pkg_arch = arch_family
+      install_method = "install"
+      if File.exists?("/etc/slackware-version") || Pathname.which("slackpkg")
+        # Slackware
+        nickname = File.read("/etc/slackware-version").strip
+        version = nickname.split[1..-1].join(" ")
+        major_release = version.to_i
+        distro = "Slackware"
+        pkg_fmt = major_release < 13 ? "tgz" : "txz"
+        install = "slackpkg -batch=on -default_answer=y install"
+        local_install = "installpkg"
+      elsif File.exists?("/etc/oracle-release") || File.exists?("/etc/enterprise-release")
+        if File.exists?("/etc/oracle-release")
+          nickname = File.read("/etc/oracle-release").strip
+        else
+          nickname = File.read("/etc/enterprise-release").strip
+        end
+        version = nickname.match(/\d+(\.\d+)?/)[0]
+        major_release = version.to_i
+        distro, pkg_fmt, install, local_install = "Oracle", "rpm", "up2date -i", "rpm -Uvh"
+      else
+        version = `lsb_release -r 2> /dev/null`.strip.split[1..-1].join(" ")
+        major_release = version.to_i
+        nickname = `lsb_release -c 2> /dev/null`.strip.split[1..-1].join(" ")
+        lsb_release_output = `lsb_release -a 2> /dev/null`.chomp
+        distro, pkg_fmt, install, local_install = case lsb_release_output
+          when /(debian|ubuntu|mint)/i
+            pkg_arch = "amd64" if arch_family == "x86_64"
+            [$1, "deb", "apt-get install -y", "dpkg -i"]
+          when /(centos|fedora)/i
+            [$1, "rpm", "yum install -y", "yum localinstall -y"]
+          when /oracle/i
+            ["Oracle", "rpm", "up2date -i", "rpm -Uvh"]
+          when /redhat|rhel/i
+            ["RHEL", "rpm", "up2date -i", "rpm -Uvh"]
+          when /open\s*suse/i
+            ["OpenSUSE", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
+          when /suse.*enterprise/i
+            ["SLES", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
+          when /archlinux/i
+            ["ArchLinux", "pkg.tar.xz", "pacman -S --noconfirm", "pacman -U --noconfirm"]
+          when /(mandriva|mageia)/i
+            [$1, "rpm", "urpmi --auto ", "rpm -Uvh"]
+          when /pc\s*linux\s*os/i
+            ["PCLinuxOS", "rpm", "apt-get install -y", "rpm -Uvh"]
+          when /gentoo/i
+            ["Gentoo", "tgz", "emerge", ""]
+          else
+            install_method = "build"
+            [`lsb_release -d 2> /dev/null`.strip.split[1..-1].join(" ")]
+        end
+      end
+      ret = {
+        :platform => "linux",
+        :os_distro => distro,
+        :pkg_format => pkg_fmt,
+        :pkg_arch => pkg_arch,
+        :os_version => version,
+        :install_method => install_method,
+        :install_cmd => install,
+        :local_install_cmd => local_install,
+        :os_nickname => nickname,
+        :hostname => `hostname`.chomp,
+      }
+      ret.reject! { |k,v| v.nil? }
+      @@os_features.merge!(ret)
+    end
+
+    # Solaris Miner
+    solaris_miner = lambda do
+      distro = `uname -a`.match(/(open\s*)?(solaris)/i)[1..-1].compact.map { |s| s.capitalize }.join
+      version = `uname -r`.strip
+      nickname = "#{distro} #{version.split('.')[-1]}"
+      if distro == "OpenSolaris"
+        nickname = File.read("/etc/release").match(/OpenSolaris [a-zA-Z0-9.]\+/i)[0].strip
+      end
+      @@os_features.merge!({
+        :platform => "solaris",
+        :os_distro => distro,
+        :os_version => version,
+        :install_method => "install",
+        :install_cmd => "pkg install",
+        :os_nickname => nickname,
+        :hostname => `hostname`.chomp,
+      })
+    end
+
+    # *BSD Miner
+    bsd_miner = lambda do
+      distro = `uname -s`.strip
+      version = `uname -r`.strip
+      @@os_features.merge!({
+        :platform => "bsd",
+        :os_distro => distro,
+        :os_version => version,
+        :install_method => "install",
+        :install_cmd => "pkg_add -r",
+        :os_nickname => "#{distro} #{version}",
+        :hostname => `hostname`.chomp,
+      })
+    end
+
+    # BeOS Miner
+    beos_miner = lambda do
+      version = `uname -r`.strip
+      distro = `uname -s`.strip
+      @@os_features.merge!({
+        :platform => "beos",
+        :os_distro => distro,
+        :os_version => version,
+        :install_method => "build",
+        :os_nickname => "#{distro} #{version}",
+        :hostname => `hostname`.chomp,
+      })
+    end
+
+    # Windows Miner
+    windows_miner = lambda do
+      sysinfo = `reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"`.chomp
+
+      hostname = `reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\ComputerName\\ComputerName"`.chomp
+      hostname = hostname.match(/^\s*ComputerName\s+\w+\s+(.*)/i)[1].strip
+
+      version = sysinfo.match(/^\s*CurrentVersion\s+\w+\s+(.*)/i)[1].strip << "."
+      version << sysinfo.match(/^\s*CurrentBuildNumber\s+\w+\s+(.*)/i)[1].strip
+
+      nickname = sysinfo.match(/^\s*ProductName\s+\w+\s+(.*)/i)[1].strip
+      nickname = "Microsoft #{nickname}" unless nickname =~ /^Microsoft/
+
+      try_boot_ini = `type C:\\boot.ini 2> nul | findstr /C:"WINDOWS="`.chomp
+      unless try_boot_ini.empty?
+        nickname = try_boot_ini.match(/WINDOWS="([^"]+)"/i)[1].strip
+      end
+      @@os_features.merge!({
+        :os_distro => nickname.split(/\s+/).reject { |s| s =~ /microsoft|windows/i }.join(" "),
+        :hostname => hostname,
+        :os_nickname => nickname,
+        :os_version => version,
+        :platform => "windows",
+        :install_method => "install",
+        :install_cmd => "install",
+      })
+    end
+
+    case ::RbConfig::CONFIG['host_os'].downcase
+    when /darwin/;      mac_miner[]
+    when /mswin|mingw/; windows_miner[]
+    when /linux/;       linux_miner[]
+    when /bsd/;         bsd_miner[]
+    when /solaris/;     solaris_miner[]
+    else
+      case `uname -s`.chomp.downcase
+      when /linux/;     linux_miner[]
+      when /darwin/;    mac_miner[]
+      when /solaris/;   solaris_miner[]
+      when /bsd/;       bsd_miner[]
+      when /dragonfly/; bsd_miner[]
+      when /haiku/;     beos_miner[]
+      when /beos/;      beos_miner[]
+      end
+    end
+
+    @@os_features.freeze
+  end
+
+  # Detect machine details
+  def detect_hardware
+    @@machine_details ||= nil
+    return @@machine_details if @@machine_details
+
     # Processor Architecture Miner
     proc_arch_miner = lambda do |stderr_redirect|
       stderr_redirect ||= "2> /dev/null"
@@ -218,250 +452,13 @@ module Kernel
       mem_size
     end
 
-    # Mac Miner
-    mac_miner = lambda do
-      version = `sw_vers -productVersion`.match(/\d+\.\d+\.\d+/)[0]
-      @@os_features.merge!({
-        :platform => "darwin",
-        :os_distro => "Mac OSX",
-        :os_version => version,
-        :os_nickname => case version
-          when /^10.0/; "Cheetah"
-          when /^10.1/; "Puma"
-          when /^10.2/; "Jaguar"
-          when /^10.3/; "Panther"
-          when /^10.4/; "Tiger"
-          when /^10.5/; "Leopard"
-          when /^10.6/; "Snow Leopard"
-          when /^10.7/; "Lion"
-          when /^10.8/; "Mountain Lion"
-          else; "Unknown Version of OSX"
-        end,
-        :install_method => "install",
-        :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner[nil],
-        :n_cpus => proc_count_miner[nil],
-        :ram => mem_size_miner[nil],
-      })
-      if Pathname.which("brew")
-        @@os_features[:install_cmd] = "brew install"
-      elsif Pathname.which("port")
-        @@os_features[:install_cmd] = "port install"
-      else
-        @@os_features[:install_method] = "build"
-      end
-      @@os_features
-    end
+    err = (detect_os[:platform] == "windows" ? "2> nul" : nil)
 
-    # Linux Miner
-    linux_miner = lambda do
-      # Ensure LSB is installed
-      if not Pathname.which("lsb_release")
-        pkg_mgrs = {
-          "apt-get" => "install -y lsb",                # Debian/Ubuntu/Linux Mint/PCLinuxOS
-          "up2date" => "-i lsb",                        # RHEL/Oracle
-          "yum" => "install -y lsb",                    # CentOS/Fedora/RHEL/Oracle
-          "zypper" => "--non-interactive install lsb",  # OpenSUSE/SLES
-          "pacman" => "-S --noconfirm lsb-release",     # ArchLinux
-          "urpmi" => "--auto lsb-release",              # Mandriva/Mageia
-          "emerge" => "lsb_release",                    # Gentoo
-          "slackpkg" => "",                             # Slackware NOTE - doesn't have lsb
-        }
-        ret = false
-        pkg_mgrs.each do |mgr,args|
-          if Pathname.which(mgr)
-            if mgr == "slackpkg" && File.exists?("/etc/slackware-version")
-              ret = true
-            else
-              ret = system("sudo #{mgr} #{args}")
-            end
-            break if ret
-          end
-        end
-        unless ret
-          $stderr.puts "Unknown Package manager in use (what ARE you using??)"
-        end
-      end
-
-      arch_family = proc_arch_miner[nil]
-      pkg_arch = arch_family
-      install_method = "install"
-      if File.exists?("/etc/slackware-version") || Pathname.which("slackpkg")
-        # Slackware
-        nickname = File.read("/etc/slackware-version").strip
-        version = nickname.split[1..-1].join(" ")
-        major_release = version.to_i
-        distro = "Slackware"
-        pkg_fmt = major_release < 13 ? "tgz" : "txz"
-        install = "slackpkg -batch=on -default_answer=y install"
-        local_install = "installpkg"
-      elsif File.exists?("/etc/oracle-release") || File.exists?("/etc/enterprise-release")
-        if File.exists?("/etc/oracle-release")
-          nickname = File.read("/etc/oracle-release").strip
-        else
-          nickname = File.read("/etc/enterprise-release").strip
-        end
-        version = nickname.match(/\d+(\.\d+)?/)[0]
-        major_release = version.to_i
-        distro, pkg_fmt, install, local_install = "Oracle", "rpm", "up2date -i", "rpm -Uvh"
-      else
-        version = `lsb_release -r 2> /dev/null`.strip.split[1..-1].join(" ")
-        major_release = version.to_i
-        nickname = `lsb_release -c 2> /dev/null`.strip.split[1..-1].join(" ")
-        lsb_release_output = `lsb_release -a 2> /dev/null`.chomp
-        distro, pkg_fmt, install, local_install = case lsb_release_output
-          when /(debian|ubuntu|mint)/i
-            pkg_arch = "amd64" if arch_family == "x86_64"
-            [$1, "deb", "apt-get install -y", "dpkg -i"]
-          when /(centos|fedora)/i
-            [$1, "rpm", "yum install -y", "yum localinstall -y"]
-          when /oracle/i
-            ["Oracle", "rpm", "up2date -i", "rpm -Uvh"]
-          when /redhat|rhel/i
-            ["RHEL", "rpm", "up2date -i", "rpm -Uvh"]
-          when /open\s*suse/i
-            ["OpenSUSE", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
-          when /suse.*enterprise/i
-            ["SLES", "rpm", "zypper --non-interactive install", "rpm -Uvh"]
-          when /archlinux/i
-            ["ArchLinux", "pkg.tar.xz", "pacman -S --noconfirm", "pacman -U --noconfirm"]
-          when /(mandriva|mageia)/i
-            [$1, "rpm", "urpmi --auto ", "rpm -Uvh"]
-          when /pc\s*linux\s*os/i
-            ["PCLinuxOS", "rpm", "apt-get install -y", "rpm -Uvh"]
-          when /gentoo/i
-            ["Gentoo", "tgz", "emerge", ""]
-          else
-            install_method = "build"
-            [`lsb_release -d 2> /dev/null`.strip.split[1..-1].join(" ")]
-        end
-      end
-      ret = {
-        :platform => "linux",
-        :os_distro => distro,
-        :pkg_format => pkg_fmt,
-        :pkg_arch => pkg_arch,
-        :os_version => version,
-        :install_method => install_method,
-        :install_cmd => install,
-        :local_install_cmd => local_install,
-        :os_nickname => nickname,
-        :hostname => `hostname`.chomp,
-        :arch => arch_family,
-        :n_cpus => proc_count_miner[nil],
-        :ram => mem_size_miner[nil],
-      }
-      ret.reject! { |k,v| v.nil? }
-      @@os_features.merge!(ret)
-    end
-
-    # Solaris Miner
-    solaris_miner = lambda do
-      distro = `uname -a`.match(/(open\s*)?(solaris)/i)[1..-1].compact.map { |s| s.capitalize }.join
-      version = `uname -r`.strip
-      nickname = "#{distro} #{version.split('.')[-1]}"
-      if distro == "OpenSolaris"
-        nickname = File.read("/etc/release").match(/OpenSolaris [a-zA-Z0-9.]\+/i)[0].strip
-      end
-      @@os_features.merge!({
-        :platform => "solaris",
-        :os_distro => distro,
-        :os_version => version,
-        :install_method => "install",
-        :install_cmd => "pkg install",
-        :os_nickname => nickname,
-        :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner[nil],
-        :n_cpus => proc_count_miner[nil],
-        :ram => mem_size_miner[nil],
-      })
-    end
-
-    # *BSD Miner
-    bsd_miner = lambda do
-      distro = `uname -s`.strip
-      version = `uname -r`.strip
-      @@os_features.merge!({
-        :platform => "bsd",
-        :os_distro => distro,
-        :os_version => version,
-        :install_method => "install",
-        :install_cmd => "pkg_add -r",
-        :os_nickname => "#{distro} #{version}",
-        :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner[nil],
-        :n_cpus => proc_count_miner[nil],
-        :ram => mem_size_miner[nil],
-      })
-    end
-
-    # BeOS Miner
-    beos_miner = lambda do
-      version = `uname -r`.strip
-      distro = `uname -s`.strip
-      @@os_features.merge!({
-        :platform => "beos",
-        :os_distro => distro,
-        :os_version => version,
-        :install_method => "build",
-        :os_nickname => "#{distro} #{version}",
-        :hostname => `hostname`.chomp,
-        :arch => proc_arch_miner[nil],
-        :n_cpus => proc_count_miner[nil],
-        :ram => mem_size_miner[nil],
-      })
-    end
-
-    # Windows Miner
-    windows_miner = lambda do
-      sysinfo = `reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"`.chomp
-
-      hostname = `reg query "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\ComputerName\\ComputerName"`.chomp
-      hostname = hostname.match(/^\s*ComputerName\s+\w+\s+(.*)/i)[1].strip
-
-      version = sysinfo.match(/^\s*CurrentVersion\s+\w+\s+(.*)/i)[1].strip << "."
-      version << sysinfo.match(/^\s*CurrentBuildNumber\s+\w+\s+(.*)/i)[1].strip
-
-      nickname = sysinfo.match(/^\s*ProductName\s+\w+\s+(.*)/i)[1].strip
-      nickname = "Microsoft #{nickname}" unless nickname =~ /^Microsoft/
-
-      try_boot_ini = `type C:\\boot.ini 2> nul | findstr /C:"WINDOWS="`.chomp
-      unless try_boot_ini.empty?
-        nickname = try_boot_ini.match(/WINDOWS="([^"]+)"/i)[1].strip
-      end
-      @@os_features.merge!({
-        :os_distro => nickname.split(/\s+/).reject { |s| s =~ /microsoft|windows/i }.join(" "),
-        :hostname => hostname,
-        :os_nickname => nickname,
-        :os_version => version,
-        :platform => "windows",
-        :install_method => "install",
-        :install_cmd => "install",
-        :arch => proc_arch_miner["2> nul"],
-        :n_cpus => proc_count_miner["2> nul"],
-        :ram => mem_size_miner["2> nul"],
-      })
-    end
-
-    case ::RbConfig::CONFIG['host_os'].downcase
-    when /darwin/;      mac_miner[]
-    when /mswin|mingw/; windows_miner[]
-    when /linux/;       linux_miner[]
-    when /bsd/;         bsd_miner[]
-    when /solaris/;     solaris_miner[]
-    else
-      case `uname -s`.chomp.downcase
-      when /linux/;     linux_miner[]
-      when /darwin/;    mac_miner[]
-      when /solaris/;   solaris_miner[]
-      when /bsd/;       bsd_miner[]
-      when /dragonfly/; bsd_miner[]
-      when /haiku/;     beos_miner[]
-      when /beos/;      beos_miner[]
-      end
-    end
-
-    @@os_features.freeze
+    @@machine_details ||= {
+      :arch => proc_arch_miner[err],
+      :n_cpus => proc_count_miner[err],
+      :ram => mem_size_miner[err],
+    }
   end
 
   # Detect the interpreter we're running on.
@@ -545,7 +542,7 @@ module Kernel
       :interpreter_language => detect_interpreter_language,
       :ipv4 => detect_reachable_ip,
       :ruby_version => RUBY_VERSION,
-    }.merge(detect_os)
+    }.merge(detect_os).merge(detect_hardware)
   end
 
   # Gems that are required only when a module or class is used

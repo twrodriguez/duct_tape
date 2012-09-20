@@ -31,5 +31,8 @@ end
 
 task :default => :spec
 
-require 'yard'
-YARD::Rake::YardocTask.new
+begin
+  require 'yard'
+  YARD::Rake::YardocTask.new
+rescue LoadError
+end
