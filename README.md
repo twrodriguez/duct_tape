@@ -42,8 +42,8 @@ Core Extensions
 ---------------
 
 Array, TrueClass, FalseClass, DateTime, Dir, File, Hash, Kernel, Numeric, Object,
-Pathname, Range, Regexp, String, Symbol, and Time have patches in duct_tape. Here
-are a few examples:
+Pathname, Range, Regexp, String, Symbol, Time, and URI have patches in duct_tape.
+Here are a few examples:
 
     # Array
     ["a","b","c"].to_h                        #=> {0=>"a", 1=>"b", 2=>"c"}
@@ -107,6 +107,7 @@ Platform Detection
                                               #    :interpreter_language=>"java",
                                               #    :ipv4=>"192.168.1.24",
                                               #    :local_install_cmd=>"yum localinstall -y",
+                                              #    :mac_addr=>"00:1c:25:74:c9:6c",
                                               #    :n_cpus=>4,
                                               #    :os_distro=>"Fedora",
                                               #    :os_nickname=>"Verne",
@@ -125,6 +126,7 @@ Platform Detection
                                               #    :interpreter=>"mri",
                                               #    :interpreter_language=>"c",
                                               #    :ipv4=>"10.0.2.15",
+                                              #    :mac_addr=>"00:1c:25:74:c9:6c",
                                               #    :n_cpus=>8,
                                               #    :os_distro=>"XP Professional",
                                               #    :os_nickname=>"Microsoft Windows XP Professional",
@@ -141,6 +143,7 @@ Platform Detection
                                               #    :interpreter=>"mri",
                                               #    :interpreter_language=>"c",
                                               #    :ipv4=>"192.168.1.70",
+                                              #    :mac_addr=>"00:1c:25:74:c9:6c",
                                               #    :n_cpus=>8,
                                               #    :os_distro=>"OpenSolaris",
                                               #    :os_nickname=>"OpenSolaris 2009.06",

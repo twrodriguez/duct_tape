@@ -452,12 +452,12 @@ module Kernel
     # MAC address Miner
     mac_addr_miner = lambda do |stderr_redirect|
       cmds = [
-        %<ifconfig -a %s>,
-        %</sbin/ifconfig -a %s>,
-        %</bin/ifconfig -a %s>,
+        %<ifconfig -a %s>, # Linux
+        %</sbin/ifconfig -a %s>, # Linux Alt
+        %</bin/ifconfig -a %s>, # Linux Alt #2
         %<ip addr %s>,
-        %<ipconfig /all>, # Windows
-        %<cat /sys/class/net/*/address>,
+        %<ipconfig /all %s>, # Windows
+        %<cat /sys/class/net/*/address %s>, # Linux Alt #3
       ]
       re = %r/(?:[^:\-]|\A)((?:[0-9A-F][0-9A-F][:\-]){5}[0-9A-F][0-9A-F])(?:[^:\-]|\Z)/io
       mac_addr = nil
