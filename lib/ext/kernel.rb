@@ -364,7 +364,6 @@ module Kernel
 
     # Processor Architecture Miner
     proc_arch_miner = lambda do |stderr_redirect|
-      stderr_redirect ||= "2> /dev/null"
       cmds = [
         %<arch %s>, # Linux
         %<lscpu %s | grep -i "Architecture" | awk '{print $2}'>, # Linux Alternative
@@ -395,7 +394,6 @@ module Kernel
 
     # Processor (core) Count Miner
     proc_count_miner = lambda do |stderr_redirect|
-      stderr_redirect ||= "2> /dev/null"
       cmds = [
         %<cat /proc/cpuinfo %s | grep processor | wc -l>, # Linux
         %<lscpu %s | grep -i "^CPU(s):" | awk '{print $2}'>, # Linux Alternative
@@ -417,7 +415,6 @@ module Kernel
 
     # Physical Memory Size Miner
     mem_size_miner = lambda do |stderr_redirect|
-      stderr_redirect ||= "2> /dev/null"
       cmds = [
         %<free -ob %s | grep "Mem:" | awk '{print $2}'>, # Linux
         %<sysctl -a %s | grep hw.physmem | awk '{print $2}'>, # FreeBSD
@@ -436,12 +433,12 @@ module Kernel
             mem_size = size.to_i
             if size =~ /(K|M|G|T|P|E)B?$/i
               case $1.upcase
-              when "K"; mem_size *= 1024
-              when "M"; mem_size *= 1048576
-              when "G"; mem_size *= 1073741824
-              when "T"; mem_size *= 1099511627776
-              when "P"; mem_size *= 1125899906842624
-              when "E"; mem_size *= 1152921504606846976
+              when ?K; mem_size *= 1024
+              when ?M; mem_size *= 1048576
+              when ?G; mem_size *= 1073741824
+              when ?T; mem_size *= 1099511627776
+              when ?P; mem_size *= 1125899906842624
+              when ?E; mem_size *= 1152921504606846976
               end
             end
             break
@@ -452,12 +449,35 @@ module Kernel
       mem_size
     end
 
-    err = (detect_os[:platform] == "windows" ? "2> nul" : nil)
+    # MAC address Miner
+    mac_addr_miner = lambda do |stderr_redirect|
+      cmds = [
+        %<ifconfig -a %s>,
+        %</sbin/ifconfig -a %s>,
+        %</bin/ifconfig -a %s>,
+        %<ip addr %s>,
+        %<ipconfig /all>, # Windows
+        %<cat /sys/class/net/*/address>,
+      ]
+      re = %r/(?:[^:\-]|\A)((?:[0-9A-F][0-9A-F][:\-]){5}[0-9A-F][0-9A-F])(?:[^:\-]|\Z)/io
+      mac_addr = nil
+      cmds.each do |cmd|
+        begin
+          out = `#{cmd % stderr_redirect}`.strip
+          mac_addr = out.split("\n").map { |line| line =~ re && $1 }.compact[0]
+          break if mac_addr
+        rescue Errno::ENOENT, NoMethodError
+        end
+      end
+      mac_addr
+    end
 
+    err = test(?e, "/dev/null") ? "2> /dev/null" : "2> nul"
     @@machine_details ||= {
       :arch => proc_arch_miner[err],
       :n_cpus => proc_count_miner[err],
       :ram => mem_size_miner[err],
+      :mac_addr => mac_addr_miner[err],
     }
   end
 
@@ -505,7 +525,7 @@ module Kernel
     if RUBY_VERSION >= "1.9.2"
       require 'socket'
       possible_ips = Socket.ip_address_list.reject { |ip| !ip.ipv4? || ip.ipv4_loopback? }
-      return possible_ips.first.to_s
+      return possible_ips.first.ip_address unless possible_ips.empty?
     end
     if detect_os[:platform] == "windows"
       output = `ipconfig`

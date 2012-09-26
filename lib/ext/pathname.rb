@@ -58,6 +58,8 @@ class Pathname
     new(File.join(*paths))
   end
 
+  alias_method :exists?, :exist?
+
   private
 
   def self.do_search(paths, *try_names, &block)
