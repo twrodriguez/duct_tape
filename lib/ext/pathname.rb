@@ -58,6 +58,36 @@ class Pathname
     new(File.join(*paths))
   end
 
+=begin
+  def to_object(*args, &block)
+    if socket?
+      if defined?(::UNIXSocket)
+        ::UNIXSocket.new(path)
+      else
+        :socket
+      end
+    elsif symlink?
+      link = Pathname.new(File.readlink(name))
+      link = Pathname.join(File.dirname(to_s), link) if link !~ /\A#{SEPARATOR}/
+#      {:symlink => classify_file(link)}
+      link.to_object(*args, &block)
+    elsif directory?
+      (readable?) ? Dir.new(to_s, *args, &block) : :unreadable_directory
+    elsif file?
+      (readable?) ? File.open(to_s, *args, &block) : :unreadable_file
+    elsif blockdev?
+      :block_device
+    elsif chardev?
+      :char_device
+    end
+  rescue Errno::ECONNREFUSED
+    :unreadable_socket
+  rescue Errno::EPROTOTYPE
+    :socket
+  rescue Errno::EACCES
+    :unreadable_item
+  end
+=end
   alias_method :exists?, :exist?
 
   private

@@ -27,14 +27,14 @@ class Dir
   end
 
   def children
-    entries.map_to_h { |name| File.classify_file(File.join(absolute_path, name)) }
+    entries.map_to_h { |name| Pathname.join(absolute_path, name) }
   end
   alias_method :to_h, :children
 
   def [](*path)
     pathname = Pathname.new(File.join(path.flatten))
     return nil unless pathname.exist?
-    File.classify_file(pathname)
+    pathname
   end
 
   def /(path)
@@ -42,11 +42,11 @@ class Dir
   end
 
   def files
-    children.values.reject { |v| !(File === v) }
+    entries.reject { |v| !(File.file?(v)) }
   end
 
   def directories
-    children.values.reject { |v| !(Dir === v) }
+    entries.reject { |v| !(File.directory?(v)) }
   end
 
   def writable?
