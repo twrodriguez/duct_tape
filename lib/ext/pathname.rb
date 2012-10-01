@@ -58,6 +58,14 @@ class Pathname
     new(File.join(*paths))
   end
 
+  def to_file(*args, &block)
+    File.open(to_s, *args, &block)
+  end
+
+  def to_dir(*args, &block)
+    Dir.new(to_s, *args, &block)
+  end
+
 =begin
   def to_object(*args, &block)
     if socket?

@@ -42,11 +42,11 @@ class Dir
   end
 
   def files
-    entries.reject { |v| !(File.file?(v)) }
+    children.values.reject { |v| !(File.file?(v)) }
   end
 
   def directories
-    entries.reject { |v| !(File.directory?(v)) }
+    children.values.reject { |v| !(File.directory?(v)) }
   end
 
   def writable?
