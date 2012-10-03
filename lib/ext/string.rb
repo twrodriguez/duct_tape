@@ -19,7 +19,7 @@ class String
 
   def chunk(max_length)
     type_assert(max_length, Integer)
-    split(/(.{#{max_length.to_i}})/).reject { |s| s.empty? }
+    chars.each_slice(max_length).to_a.map! { |ary| ary.join("") }
   end
 
   def %(arg)

@@ -171,7 +171,7 @@ class Array
     end
   end
 
-  def not_empty?(arg)
+  def not_empty?
     !empty?
   end
 

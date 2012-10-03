@@ -48,7 +48,7 @@ class Hash
     type_assert(other, Array, Hash)
     unless block_given?
       other = other.keys if Hash === other
-      block = proc { |k| !other.include?(k) }
+      block = proc { |k| other.include?(k) }
     end
     self.reject! { |key,val| !block[key] }
   end
