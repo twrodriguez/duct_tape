@@ -186,9 +186,6 @@ module Kernel
             break if ret
           end
         end
-        unless ret
-          $stderr.puts "Unknown Package manager in use (what ARE you using??)"
-        end
       end
 
       arch_family = `arch 2> /dev/null`.chomp
@@ -417,7 +414,7 @@ module Kernel
     mem_size_miner = lambda do |stderr_redirect|
       cmds = [
         %<free -ob %s | grep "Mem:" | awk '{print $2}'>, # Linux
-        %<sysctl -a %s | grep hw.physmem | awk '{print $2}'>, # FreeBSD
+        %<sysctl -a %s | grep hw.physmem>, # FreeBSD, Mac OSX
         %<sysinfo %s | grep -i "bytes\\s*free" | grep -o "[0-9]*)" | grep -o "[0-9]*">, # Haiku
         %<top -d1 -q %s | grep "Mem" | awk '{print $2}'>, # Solaris
         %<systeminfo %s | findstr /C:"Total Physical Memory">, # Windows
@@ -426,19 +423,17 @@ module Kernel
       cmds.each do |cmd|
         begin
           size = `#{cmd % stderr_redirect}`.strip.gsub(/,/, "")
-          if size =~ /Total Physical Memory/
-            size = size.strip.split(":")[-1].split.join
-          end
+          size = size.strip.split(/:|=/)[-1].split.join
           unless size.empty?
             mem_size = size.to_i
             if size =~ /(K|M|G|T|P|E)B?$/i
               case $1.upcase
-              when ?K; mem_size *= 1024
-              when ?M; mem_size *= 1048576
-              when ?G; mem_size *= 1073741824
-              when ?T; mem_size *= 1099511627776
-              when ?P; mem_size *= 1125899906842624
-              when ?E; mem_size *= 1152921504606846976
+              when "K"; mem_size *= 1024
+              when "M"; mem_size *= 1048576
+              when "G"; mem_size *= 1073741824
+              when "T"; mem_size *= 1099511627776
+              when "P"; mem_size *= 1125899906842624
+              when "E"; mem_size *= 1152921504606846976
               end
             end
             break
@@ -472,7 +467,7 @@ module Kernel
       mac_addr
     end
 
-    err = test(?e, "/dev/null") ? "2> /dev/null" : "2> nul"
+    err = test("e", "/dev/null") ? "2> /dev/null" : "2> nul"
     @@machine_details ||= {
       :arch => proc_arch_miner[err],
       :n_cpus => proc_count_miner[err],
