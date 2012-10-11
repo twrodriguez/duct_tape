@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "duct_tape"
-  s.version = "0.0.2"
+  s.version = "0.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Rodriguez"]
-  s.date = "2012-10-03"
+  s.date = "2012-10-11"
   s.description = "A general-purpose utility library for Ruby"
   s.email = ["tw.rodriguez@gmail.com"]
   s.extensions = ["ext/mkrf_conf.rb"]
@@ -104,3 +104,4 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<rspec>, [">= 0"])
   end
 end
+
