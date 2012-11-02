@@ -2,7 +2,7 @@ require 'rubygems'
 require 'facets'
 Dir[__DIR__("ext", "*.rb")].each { |f| require f }
 
-if detect_interpreter_language =~ /^c/i
+if gem_installed?('algorithms')
   require 'algorithms'
   automatic_require "algorithms"
 end
