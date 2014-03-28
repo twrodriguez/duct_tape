@@ -7,7 +7,7 @@ class Pathname
   def self.which(cmd)
     paths = ENV['PATH'].split(File::PATH_SEPARATOR).uniq
     exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
-    names = exts.map { |ext| "#{cmd}#{ext}" }
+    names = form_name_list(cmd, {:extensions => exts})
     return do_search(paths, *names) { |f| f.executable? }
   end
 
@@ -21,13 +21,20 @@ class Pathname
       '/usr/lib',
       '/usr/X11/lib',
       '/usr/share',
-    ].uniq
-    names = [lib, "#{lib}.so", "lib#{lib}", "lib#{lib}.so"]
+    ]
+    prefixes = [
+      "lib"
+    ]
+    extensions = [
+      "",
+      ".so"
+    ]
 
     if detect_os[:platform] == "windows"
-      names = [
-        lib, "#{lib}.dll", "#{lib}.dll.a",
-        "lib#{lib}", "lib#{lib}.dll", "lib#{lib}.dll.a"
+      extensions = [
+        "",
+        ".dll",
+        ".dll.a"
       ]
       paths = [
         calling_method_dirname,
@@ -37,9 +44,12 @@ class Pathname
         ENV["SystemRoot"],
       ].compact.uniq
       paths |= ENV['PATH'].split(File::PATH_SEPARATOR).uniq
+    elsif detect_os[:platform] == "darwin"
+      extensions << ".dylib"
     end
+    names = form_name_list(lib, {:prefixes => prefixes, :extensions => extensions})
 
-    return do_search(paths, *names) { |f| f.readable? && f.file? }
+    return do_search(paths, *names) { |f| f.readable? && f.file? && extensions.include?(f.extname) }
   end
 
   def self.header(hdr)
@@ -50,7 +60,11 @@ class Pathname
       RbConfig::CONFIG["includedir"],
       RbConfig::CONFIG["oldincludedir"],
     ].compact.uniq
-    names = [hdr, hdr + ".h", hdr + ".hpp"]
+    extensions = [
+      ".h",
+      ".hpp"
+    ]
+    names = form_name_list(hdr, {:extensions => extensions})
     return do_search(paths, *names) { |f| f.readable? && f.file? }
   end
 
@@ -100,11 +114,33 @@ class Pathname
 
   private
 
+  def self.form_name_list(name, opts={})
+    exts = opts[:exts] || opts[:extensions] || []
+    pfxs = opts[:pfxs] || opts[:prefixes] || []
+    exts.delete("")
+    pfxs.delete("")
+    exts.unshift("")
+    pfxs.unshift("")
+
+    ret = []
+    (pfxs * exts).each { |pfx,ext| ret << [pfx, name, ext].join("") }
+    ret
+  end
+
   def self.do_search(paths, *try_names, &block)
     try_names.flatten!
     paths.each do |path|
       pn = Pathname.new(path)
-      try_names.each do |name|
+      # Handle globs
+      globbed = try_names.map do |name|
+        if name["*"]
+          Dir.glob(pn + name)
+        else
+          name
+        end
+      end
+      globbed.flatten!
+      globbed.each do |name|
         file = pn + name
         return file if yield(file)
       end
