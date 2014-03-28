@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'backports'
 require 'facets'
 Dir[__DIR__("ext", "*.rb")].each { |f| require f }
 
