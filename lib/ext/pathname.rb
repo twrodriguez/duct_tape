@@ -147,4 +147,5 @@ class Pathname
     end
     nil
   end
+  private_class_method :do_search
 end

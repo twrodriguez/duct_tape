@@ -152,6 +152,23 @@ Platform Detection
                                               #    :ram=>2147483648,
                                               #    :ruby_version=>"1.8.7"}
 
+    # Kernel (on Mac OSX)
+    detect_platform                           #=> {:arch=>"i386",
+                                              #    :hostname=>"MacBook.local",
+                                              #    :install_cmd=>"brew install",
+                                              #    :install_method=>"install",
+                                              #    :interpreter=>"mri",
+                                              #    :interpreter_language=>"c",
+                                              #    :ipv4=>"192.168.1.18",
+                                              #    :mac_addr=>"00:23:12:05:36:b9",
+                                              #    :n_cpus=>2,
+                                              #    :os_distro=>"Mac OSX",
+                                              #    :os_nickname=>"Lion",
+                                              #    :os_version=>"10.7.5",
+                                              #    :platform=>"darwin",
+                                              #    :ram=>2147483648,
+                                              #    :ruby_version=>"1.9.3"}
+
 
 AutoassociativeArray
 --------------------

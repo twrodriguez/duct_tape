@@ -51,3 +51,5 @@ tmp
 .yardoc
 .rbx
 doc
+*.a
+*.o

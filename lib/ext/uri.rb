@@ -13,4 +13,10 @@ class URI::Generic
   def relative_scheme?
     scheme.nil? && (!host.nil? || !path.empty?)
   end
+
+  def origin
+    ret = (scheme ? "#{scheme}://" : "//")
+    ret += hostname
+    ret += (port && port != default_port ? ":#{port}" : "")
+  end
 end

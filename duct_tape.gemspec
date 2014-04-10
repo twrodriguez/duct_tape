@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "duct_tape"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Rodriguez"]
-  s.date = "2012-11-02"
+  s.date = "2013-03-30"
   s.description = "A general-purpose utility library for Ruby"
   s.email = ["tw.rodriguez@gmail.com"]
   s.extensions = ["ext/mkrf_conf.rb"]
@@ -77,30 +77,34 @@ Gem::Specification.new do |s|
   s.licenses = ["Simplified BSD"]
   s.require_paths = ["lib"]
   s.required_ruby_version = Gem::Requirement.new(">= 1.8.7")
-  s.rubygems_version = "1.8.24"
+  s.rubygems_version = "1.8.23"
   s.summary = "A bunch of useful patches for core Ruby classes"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<facets>, [">= 0"])
+      s.add_runtime_dependency(%q<bundler>, [">= 0"])
       s.add_development_dependency(%q<rake>, [">= 0"])
       s.add_development_dependency(%q<yard>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, [">= 0"])
       s.add_development_dependency(%q<rspec>, [">= 0"])
+      s.add_development_dependency(%q<simplecov>, [">= 0"])
     else
-      s.add_dependency(%q<facets>, [">= 0"])
+      s.add_dependency(%q<bundler>, [">= 0"])
       s.add_dependency(%q<rake>, [">= 0"])
       s.add_dependency(%q<yard>, [">= 0"])
       s.add_dependency(%q<jeweler>, [">= 0"])
       s.add_dependency(%q<rspec>, [">= 0"])
+      s.add_dependency(%q<simplecov>, [">= 0"])
     end
   else
-    s.add_dependency(%q<facets>, [">= 0"])
+    s.add_dependency(%q<bundler>, [">= 0"])
     s.add_dependency(%q<rake>, [">= 0"])
     s.add_dependency(%q<yard>, [">= 0"])
     s.add_dependency(%q<jeweler>, [">= 0"])
     s.add_dependency(%q<rspec>, [">= 0"])
+    s.add_dependency(%q<simplecov>, [">= 0"])
   end
 end
+

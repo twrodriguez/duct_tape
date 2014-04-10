@@ -4,29 +4,51 @@ require 'stringio'
 module Kernel
   private
 
-  def this_method
-    (caller[0..-1].detect { |c| c =~ /`([^']*)'/ } && $1).to_sym
-  rescue NoMethodError
-    nil
-  end
+  if defined?(caller_locations)
+    def this_method
+      caller_locations(1, 1)[0].label.to_sym
+    rescue NoMethodError
+      nil
+    end
 
-  def calling_method
-    (caller[1..-1].detect { |c| c =~ /`([^']*)'/ } && $1).to_sym
-  rescue NoMethodError
-    nil
-  end
+    def calling_method
+      caller_locations(2, 1)[0].label.to_sym
+    rescue NoMethodError
+      nil
+    end
 
-  def calling_method_file(idx=1)
-    c = caller[idx]
-    return nil unless c.rindex(/:\d+(:in `.*')?$/)
-    file = $`
-    return nil if /\A\((.*)\)/ =~ file
-    file
-  end
+    def calling_method_file(idx=1)
+      caller_locations(idx+1, 1)[0].path
+    end
 
-  def calling_method_dirname(idx=1)
-    found = calling_method_file(idx+1)
-    found.nil? ? found : File.dirname(found)
+    def calling_method_dirname(idx=1)
+      File.dirname(caller_locations(idx+1, 1)[0].path)
+    end
+  else
+    def this_method
+      (caller[0..-1].detect { |c| c =~ /`([^']*)'/ } && $1).to_sym
+    rescue NoMethodError
+      nil
+    end
+
+    def calling_method
+      (caller[1..-1].detect { |c| c =~ /`([^']*)'/ } && $1).to_sym
+    rescue NoMethodError
+      nil
+    end
+
+    def calling_method_file(idx=1)
+      c = caller[idx]
+      return nil unless c.rindex(/:\d+(:in `.*')?$/)
+      file = $`
+      return nil if /\A\((.*)\)/ =~ file
+      file
+    end
+
+    def calling_method_dirname(idx=1)
+      found = calling_method_file(idx+1)
+      found.nil? ? found : File.dirname(found)
+    end
   end
 
   def tty?
@@ -137,15 +159,16 @@ module Kernel
         :os_distro => "Mac OSX",
         :os_version => version,
         :os_nickname => case version
-          when /^10.0/; "Cheetah"
-          when /^10.1/; "Puma"
-          when /^10.2/; "Jaguar"
-          when /^10.3/; "Panther"
-          when /^10.4/; "Tiger"
-          when /^10.5/; "Leopard"
-          when /^10.6/; "Snow Leopard"
-          when /^10.7/; "Lion"
-          when /^10.8/; "Mountain Lion"
+          when /^10\.0\./; "Cheetah"
+          when /^10\.1\./; "Puma"
+          when /^10\.2\./; "Jaguar"
+          when /^10\.3\./; "Panther"
+          when /^10\.4\./; "Tiger"
+          when /^10\.5\./; "Leopard"
+          when /^10\.6\./; "Snow Leopard"
+          when /^10\.7\./; "Lion"
+          when /^10\.8\./; "Mountain Lion"
+          when /^10\.9\./; "Mavericks"
           else; "Unknown Version of OSX"
         end,
         :install_method => "install",
@@ -322,15 +345,23 @@ module Kernel
       unless try_boot_ini.empty?
         nickname = try_boot_ini.match(/WINDOWS="([^"]+)"/i)[1].strip
       end
-      @@os_features.merge!({
+
+      install_method, install_cmd = case ::RbConfig::CONFIG['host_os'].downcase
+        when /mingw/;   ["build", nil]
+        when /mswin/;   ["install", "install"]
+        when /cygwin/;  ["install", "setup.exe -q -D -P"] # TODO - Does this detect cygwin properly?
+      end
+      ret = {
         :os_distro => nickname.split(/\s+/).reject { |s| s =~ /microsoft|windows/i }.join(" "),
         :hostname => hostname,
         :os_nickname => nickname,
         :os_version => version,
-        :platform => "windows",
-        :install_method => "install",
-        :install_cmd => "install",
-      })
+        :platform => "windows", # TODO - Cygwin / MinGW
+        :install_method => install_method,
+        :install_cmd => install_cmd,
+      }
+      ret.reject! { |k,v| v.nil? }
+      @@os_features.merge!(ret)
     end
 
     case ::RbConfig::CONFIG['host_os'].downcase
