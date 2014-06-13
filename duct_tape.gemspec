@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "duct_tape"
-  s.version = "0.0.5"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Rodriguez"]
-  s.date = "2013-03-30"
+  s.date = "2014-06-13"
   s.description = "A general-purpose utility library for Ruby"
   s.email = ["tw.rodriguez@gmail.com"]
   s.extensions = ["ext/mkrf_conf.rb"]
@@ -26,11 +26,6 @@ Gem::Specification.new do |s|
     "VERSION",
     "duct_tape.gemspec",
     "ext/mkrf_conf.rb",
-    "git_hooks/env_vars.sh",
-    "git_hooks/post-commit",
-    "git_hooks/post-merge",
-    "git_hooks/pre-commit",
-    "install_git_hooks",
     "lib/algorithms/containers.rb",
     "lib/algorithms/containers/heap.rb",
     "lib/algorithms/containers/priority_queue.rb",
@@ -77,33 +72,39 @@ Gem::Specification.new do |s|
   s.licenses = ["Simplified BSD"]
   s.require_paths = ["lib"]
   s.required_ruby_version = Gem::Requirement.new(">= 1.8.7")
-  s.rubygems_version = "1.8.23"
+  s.rubygems_version = "1.8.23.2"
   s.summary = "A bunch of useful patches for core Ruby classes"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<facets>, [">= 2.9.3"])
+      s.add_runtime_dependency(%q<backports>, [">= 0"])
       s.add_runtime_dependency(%q<bundler>, [">= 0"])
-      s.add_development_dependency(%q<rake>, [">= 0"])
       s.add_development_dependency(%q<yard>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, [">= 0"])
       s.add_development_dependency(%q<rspec>, [">= 0"])
+      s.add_development_dependency(%q<rake>, [">= 0"])
       s.add_development_dependency(%q<simplecov>, [">= 0"])
     else
+      s.add_dependency(%q<facets>, [">= 2.9.3"])
+      s.add_dependency(%q<backports>, [">= 0"])
       s.add_dependency(%q<bundler>, [">= 0"])
-      s.add_dependency(%q<rake>, [">= 0"])
       s.add_dependency(%q<yard>, [">= 0"])
       s.add_dependency(%q<jeweler>, [">= 0"])
       s.add_dependency(%q<rspec>, [">= 0"])
+      s.add_dependency(%q<rake>, [">= 0"])
       s.add_dependency(%q<simplecov>, [">= 0"])
     end
   else
+    s.add_dependency(%q<facets>, [">= 2.9.3"])
+    s.add_dependency(%q<backports>, [">= 0"])
     s.add_dependency(%q<bundler>, [">= 0"])
-    s.add_dependency(%q<rake>, [">= 0"])
     s.add_dependency(%q<yard>, [">= 0"])
     s.add_dependency(%q<jeweler>, [">= 0"])
     s.add_dependency(%q<rspec>, [">= 0"])
+    s.add_dependency(%q<rake>, [">= 0"])
     s.add_dependency(%q<simplecov>, [">= 0"])
   end
 end
