@@ -54,3 +54,4 @@ tmp
 doc
 *.a
 *.o
+*.gem
