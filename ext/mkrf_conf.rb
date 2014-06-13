@@ -47,6 +47,4 @@ end
 =end
 
 # create dummy rakefile to indicate success
-f = File.open(File.join(File.dirname(__FILE__), "Rakefile"), "w")
-f.write("task :default\n")
-f.close
+File.open(File.join(File.dirname(__FILE__), "Rakefile"), "w") { |f| f.write("task :default\n") }

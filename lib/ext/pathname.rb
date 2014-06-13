@@ -17,6 +17,7 @@ class Pathname
       '/usr/local/lib',
       '/usr/local/libdata',
       '/opt/local/lib',
+      '/usr/lib/x86_64-linux-gnu',
       '/usr/lib64',
       '/usr/lib',
       '/usr/X11/lib',
@@ -49,7 +50,9 @@ class Pathname
     end
     names = form_name_list(lib, {:prefixes => prefixes, :extensions => extensions})
 
-    return do_search(paths, *names) { |f| f.readable? && f.file? && extensions.include?(f.extname) }
+    return do_search(paths, *names) do |f|
+      f.readable? && f.file? && extensions.any? { |ext| f =~ %r{#{Regexp.escape(ext)}\z} }
+    end
   end
 
   def self.header(hdr)
@@ -62,6 +65,8 @@ class Pathname
     ].compact.uniq
     extensions = [
       ".h",
+      ".hh",
+      ".hxx",
       ".hpp"
     ]
     names = form_name_list(hdr, {:extensions => extensions})

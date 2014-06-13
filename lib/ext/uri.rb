@@ -1,5 +1,4 @@
 require 'pathname'
-require 'uri'
 
 class URI::Generic
   def relative_path?
