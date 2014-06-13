@@ -9,6 +9,7 @@
 *.vi
 *~
 *.sass-cache
+*.rake_t_cache
 \#*
 .\#*
 
