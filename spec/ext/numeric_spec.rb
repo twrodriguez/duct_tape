@@ -5,22 +5,22 @@ require File.join(File.dirname(__FILE__), "..", "spec_helper.rb")
 #
 describe Numeric, "units" do
   it "chronological sizes" do
-    3.years.should eq(3*365*24*60*60)
-    3.weeks.should eq(3*7*24*60*60)
-    3.days.should eq(3*24*60*60)
-    3.hours.should eq(3*60*60)
-    3.minutes.should eq(3*60)
-    3.mseconds.should eq(3 / 1000.0)
-    3.useconds.should eq(3 / 1000000.0)
+    expect(3.years).to eq(3*365*24*60*60)
+    expect(3.weeks).to eq(3*7*24*60*60)
+    expect(3.days).to eq(3*24*60*60)
+    expect(3.hours).to eq(3*60*60)
+    expect(3.minutes).to eq(3*60)
+    expect(3.mseconds).to eq(3 / 1000.0)
+    expect(3.useconds).to eq(3 / 1000000.0)
   end
 
   it "byte sizes" do
-    3.eb.should eq(3*(2**60))
-    3.pb.should eq(3*(2**50))
-    3.tb.should eq(3*(2**40))
-    3.gb.should eq(3*(2**30))
-    3.mb.should eq(3*(2**20))
-    3.kb.should eq(3*(2**10))
+    expect(3.eb).to eq(3*(2**60))
+    expect(3.pb).to eq(3*(2**50))
+    expect(3.tb).to eq(3*(2**40))
+    expect(3.gb).to eq(3*(2**30))
+    expect(3.mb).to eq(3*(2**20))
+    expect(3.kb).to eq(3*(2**10))
   end
 end
 

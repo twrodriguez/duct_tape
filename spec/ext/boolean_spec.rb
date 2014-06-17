@@ -5,7 +5,7 @@ require File.join(File.dirname(__FILE__), "..", "spec_helper.rb")
 #
 describe TrueClass, "#is_a? Boolean" do
   it "is a Boolean" do
-    true.should be_a_kind_of Boolean
+    expect(true).to be_a_kind_of Boolean
   end
 end
 
@@ -14,6 +14,6 @@ end
 #
 describe FalseClass, "#is_a? Boolean" do
   it "is a Boolean" do
-    false.should be_a_kind_of Boolean
+    expect(false).to be_a_kind_of Boolean
   end
 end
