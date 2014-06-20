@@ -44,6 +44,7 @@ build/buildinfo.properties
 build/config/buildinfo.properties
 
 ## PROJECT::GENERAL
+coverage
 rdoc
 pkg
 log
