@@ -131,6 +131,7 @@ class Pathname
     (pfxs * exts).each { |pfx,ext| ret << [pfx, name, ext].join("") }
     ret
   end
+  private_class_method :form_name_list
 
   def self.do_search(paths, *try_names, &block)
     try_names.flatten!

@@ -40,6 +40,7 @@ end
 
 desc "Check syntax for all project files"
 task :syntax do
+  puts "Running syntax checks..."
   types = {
     "yaml" => [{
       :cmd => %q{ruby -ryaml -e "begin; YAML::load(IO.read('%s')); rescue Exception => e; raise if e.is_a?(SyntaxError); end"}
@@ -98,50 +99,42 @@ task :syntax do
 
   if syntax_error_found
     fail "Syntax Errors found!"
-  else
-    puts "Everything seems alright. Try running tests!"
   end
 end
 
-desc "Increment patch version"
-task :bump_patch_version do
-  puts "Old Version: #{VERSION_STRING}"
-  File.open(VERSION_FILE, "w") do |f|
-    f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1}.#{$2}.#{$3.to_i + 1}" })
+namespace :version do
+  desc "Increment patch version"
+  task :patch do
+    puts "Old Version: #{VERSION_STRING}"
+    File.open(VERSION_FILE, "w") do |f|
+      f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1}.#{$2}.#{$3.to_i + 1}" })
+    end
+    commit_msg = "New Version: #{VERSION_STRING}"
+    sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
+    sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
   end
-  commit_msg = "New Version: #{VERSION_STRING}"
-  sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
-  sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
-end
 
-desc "Increment minor version"
-task :bump_minor_version do
-  puts "Old Version: #{VERSION_STRING}"
-  File.open(VERSION_FILE, "w") do |f|
-    f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1}.#{$2.to_i + 1}.0" })
+  desc "Increment minor version"
+  task :minor do
+    puts "Old Version: #{VERSION_STRING}"
+    File.open(VERSION_FILE, "w") do |f|
+      f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1}.#{$2.to_i + 1}.0" })
+    end
+    commit_msg = "New Version: #{VERSION_STRING}"
+    sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
+    sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
   end
-  commit_msg = "New Version: #{VERSION_STRING}"
-  sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
-  sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
-end
 
-desc "Increment major version"
-task :bump_major_version do
-  puts "Old Version: #{VERSION_STRING}"
-  File.open(VERSION_FILE, "w") do |f|
-    f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1.to_i + 1}.0.0" })
+  desc "Increment major version"
+  task :major do
+    puts "Old Version: #{VERSION_STRING}"
+    File.open(VERSION_FILE, "w") do |f|
+      f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1.to_i + 1}.0.0" })
+    end
+    commit_msg = "New Version: #{VERSION_STRING}"
+    sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
+    sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
   end
-  commit_msg = "New Version: #{VERSION_STRING}"
-  sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
-  sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
 end
 
-desc "Finalize release (tag & increment version)"
-task :release do
-  puts "Tagging release version: #{VERSION_STRING}"
-  sh "git tag v#{VERSION_STRING}"
-  sh "git push --tags"
-  Rake::Task[:bump_patch_version].invoke
-end
-
-task :default => :spec
+task :default => [:syntax, :spec]
