@@ -230,178 +230,229 @@ end
 # Array#map_to_h
 #
 describe Array, "#map_to_h" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:map_to_h)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#chunk
 #
 describe Array, "#chunk" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:chunk)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#not_empty?
 #
 describe Array, "#not_empty?" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:not_empty?)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#sum
 #
 describe Array, "#sum" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:sum)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#product
 #
 describe Array, "#product" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:product)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#squares
 #
 describe Array, "#squares" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:squares)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#ranks
 #
 describe Array, "#ranks" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:ranks)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#sqrts
 #
 describe Array, "#sqrts" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:sqrts)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#mean
 #
 describe Array, "#mean" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:mean)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#frequencies
 #
 describe Array, "#frequencies" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:frequencies)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#variance
 #
 describe Array, "#variance" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:variance)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#std_dev
 #
 describe Array, "#std_dev" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:std_dev)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#median
 #
 describe Array, "#median" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:median)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#first_quartile
 #
 describe Array, "#first_quartile" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:first_quartile)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#last_quartile
 #
 describe Array, "#last_quartile" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:last_quartile)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#quartiles
 #
 describe Array, "#quartiles" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:quartiles)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#interquartile_range
 #
 describe Array, "#interquartile_range" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:interquartile_range)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#modes
 #
 describe Array, "#modes" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:modes)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#midrange
 #
 describe Array, "#midrange" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:midrange)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Array#statistical_range
 #
 describe Array, "#statistical_range" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Array.method_defined?(:statistical_range)).to be(true)
   end
+
+  pending "More tests"
+end
+
+#
+# Array#statistics
+#
+describe Array, "#statistics" do
+  it "should have the method defined" do
+    expect(Array.method_defined?(:statistics)).to be(true)
+  end
+
+  pending "More tests"
 end

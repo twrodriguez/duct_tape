@@ -28,34 +28,53 @@ end
 # Numeric#to_degrees
 #
 describe Numeric, "#to_degrees" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Numeric.method_defined?(:to_degrees)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Numeric#to_radians
 #
 describe Numeric, "#to_radians" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Numeric.method_defined?(:to_radians)).to be(true)
   end
+
+  pending "More tests"
+end
+
+#
+# Numeric#rank
+#
+describe Numeric, "#sqrt" do
+  it "should have the method defined" do
+    expect(Numeric.method_defined?(:sqrt)).to be(true)
+  end
+
+  pending "More tests"
 end
 
 #
 # Numeric#rank
 #
 describe Numeric, "#rank" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Numeric.method_defined?(:rank)).to be(true)
   end
+
+  pending "More tests"
 end
 
 #
 # Numeric#percentage_of
 #
 describe Numeric, "#percentage_of" do
-  it "remains unchanged" do
-    # TODO
+  it "should have the method defined" do
+    expect(Numeric.method_defined?(:percentage_of)).to be(true)
   end
+
+  pending "More tests"
 end

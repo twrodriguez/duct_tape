@@ -1,10 +1,23 @@
 require File.join(File.dirname(__FILE__), "..", "spec_helper.rb")
 
 #
-# File.classify_file
+# File.relative_path
 #
-describe File, ".classify_file" do
-  it "remains unchanged" do
-    # TODO
+describe File, ".relative_path" do
+  it "should have the method defined" do
+    expect(File.respond_to?(:relative_path)).to be(true)
   end
+
+  pending "More tests"
+end
+
+#
+# File.absolute_path
+#
+describe File, ".absolute_path" do
+  it "should have the method defined" do
+    expect(File.respond_to?(:absolute_path)).to be(true)
+  end
+
+  pending "More tests"
 end
