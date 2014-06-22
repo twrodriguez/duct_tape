@@ -31,12 +31,11 @@ module Containers
           break
         end
       end
-      (ret && ret.one? ? ret[0] : ret)
+      ret
     end
 
     def [](*args)
-      ret = match_impl(*args)
-      (ret && ret.one? ? ret[0] : ret)
+      match_impl(*args)
     end
 
     def by_column(col, key)

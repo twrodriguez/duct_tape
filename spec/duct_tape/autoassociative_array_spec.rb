@@ -40,7 +40,7 @@ describe Containers::AutoassociativeArray, "#partial_match" do
   it "returns the matches with the most query matches" do
     aa = Containers::AutoassociativeArray.new
     aa << [1,2,3] << [2,3,4] << [3,4,5]
-    expect(aa.partial_match(1,4,5)).to eq([3,4,5])
+    expect(aa.partial_match(1,4,5)).to eq([[3,4,5]])
   end
 
   it "returns all of the matches with the most query matches" do
@@ -48,7 +48,7 @@ describe Containers::AutoassociativeArray, "#partial_match" do
     aa << [1,2,3] << [2,3,4] << [3,4,5]
     expect(aa.partial_match(1,5)).to eq([[1,2,3], [3,4,5]])
     expect(aa.partial_match(1,3,5)).to eq([[1,2,3], [3,4,5]])
-    expect(aa.partial_match(2,4)).to eq([2,3,4])
+    expect(aa.partial_match(2,4)).to eq([[2,3,4]])
   end
 
   it "returns the matches with the most query matches with the most matches" do
