@@ -1,7 +1,7 @@
 module Containers
   class FuzzyHash
     def initialize(&block)
-      @mapping_block = block_given? ? block : nil
+      @mapping_proc = block_given? ? block : lambda { |key| [*key] }
       @auto_array = Containers::AutoassociativeArray.new
       @hash = {}
       @values = {}
@@ -9,13 +9,15 @@ module Containers
     end
 
     def [](key)
-      mapped_key = @mapping_block ? @mapping_block[key] : key
+      mapped_key = @mapping_proc[key]
+      type_assert(mapped_key, Array)
       match = @auto_array.partial_match(*mapped_key)
-      @values[match]
+      @values[match[0]]
     end
 
     def []=(key, val)
-      mapped_key = @mapping_block[key]
+      mapped_key = @mapping_proc[key]
+      type_assert(mapped_key, Array)
       @hash[key] = val
       @auto_array.insert(*mapped_key)
       @values[mapped_key] = val
@@ -46,7 +48,7 @@ module Containers
     end
 
     def dup
-      ret = self.class.new(&@mapping_block)
+      ret = self.class.new(&@mapping_proc)
       @hash.each { |key,val| ret[key] = val }
       ret
     end
