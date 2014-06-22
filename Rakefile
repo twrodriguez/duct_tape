@@ -15,6 +15,7 @@ Jeweler::Tasks.new do |gem|
   gem.required_ruby_version = '>= 1.8.7'
   gem.license = 'Simplified BSD'
   gem.version = VERSION_STRING
+  gem.files.exclude 'Gemfile.lock'
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new

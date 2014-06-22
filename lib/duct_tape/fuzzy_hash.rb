@@ -1,5 +1,5 @@
 module Containers
-  class AutoassociativeHash
+  class FuzzyHash
     def initialize(&block)
       @mapping_block = block_given? ? block : nil
       @auto_array = Containers::AutoassociativeArray.new
