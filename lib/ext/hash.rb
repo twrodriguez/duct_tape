@@ -80,4 +80,52 @@ class Hash
   def not_empty?(arg)
     !empty?
   end
+
+  def flatten_nested!(key_joiner="__")
+    changed = false
+    keys.each do |base_key|
+      if self[base_key].is_a?(Hash)
+        self[base_key].flatten_nested!(key_joiner)
+        self[base_key].each_pair do |k,v|
+          self["#{base_key}#{key_joiner}#{k}"] = v
+        end
+        delete(base_key)
+        changed = true
+      end
+    end
+    changed ? self : nil
+  end
+
+  def expand_nested!(key_joiner="__")
+    changed = false
+    keys.each do |base_key|
+      if base_key[key_joiner]
+        nested_keys = base_key.split(key_joiner)
+        hsh_ref = self
+        nested_keys.each_with_index do |key,idx|
+          if idx == nested_keys.size - 1
+            hsh_ref[key] = self[base_key]
+          else
+            hsh_ref[key] ||= {}
+            hsh_ref = hsh_ref[key]
+          end
+        end
+        delete(base_key)
+        changed = true
+      end
+    end
+    changed ? self : nil
+  end
+
+  def flatten_nested(key_joiner="__")
+    target = deep_dup
+    target.flatten_nested!(key_joiner)
+    target
+  end
+
+  def expand_nested(key_joiner="__")
+    target = deep_dup
+    target.expand_nested!(key_joiner)
+    target
+  end
 end

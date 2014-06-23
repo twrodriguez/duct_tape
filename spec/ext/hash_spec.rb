@@ -103,3 +103,47 @@ describe Hash, "#to_h" do
     expect(a).to eq(b)
   end
 end
+
+#
+# Hash#flatten_nested
+#
+describe Hash, "#flatten_nested" do
+  it "should have the method defined" do
+    expect(Hash.method_defined?(:flatten_nested)).to be(true)
+  end
+
+  pending "More tests"
+end
+
+#
+# Hash#flatten_nested!
+#
+describe Hash, "#flatten_nested!" do
+  it "should have the method defined" do
+    expect(Hash.method_defined?(:flatten_nested!)).to be(true)
+  end
+
+  pending "More tests"
+end
+
+#
+# Hash#expand_nested
+#
+describe Hash, "#expand_nested" do
+  it "should have the method defined" do
+    expect(Hash.method_defined?(:expand_nested)).to be(true)
+  end
+
+  pending "More tests"
+end
+
+#
+# Hash#expand_nested!
+#
+describe Hash, "#expand_nested!" do
+  it "should have the method defined" do
+    expect(Hash.method_defined?(:expand_nested!)).to be(true)
+  end
+
+  pending "More tests"
+end
