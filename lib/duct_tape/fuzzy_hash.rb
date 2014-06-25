@@ -43,6 +43,21 @@ module Containers
       @hash.inspect
     end
 
+    def keys
+      @hash.keys
+    end
+
+    def values
+      @hash.values
+    end
+
+    # TODO
+    #def method_missing(*args, &block)
+    #  ret = @hash.__send__(*args, &block)
+    #  rebuild_hash
+    #  ret
+    #end
+
     def to_s
       @hash.to_s
     end
