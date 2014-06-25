@@ -3,6 +3,7 @@ require 'rake'
 require 'jeweler'
 
 VERSION_FILE = File.expand_path("../VERSION", __FILE__)
+GEMSPEC_FILE = File.expand_path("../duct_tape.gemspec", __FILE__)
 VERSION_STRING = File.read(VERSION_FILE).strip
 Jeweler::Tasks.new do |gem|
   gem.name = "duct_tape"
@@ -111,7 +112,12 @@ namespace :version do
       f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1}.#{$2}.#{$3.to_i + 1}" })
     end
     commit_msg = "New Version: #{VERSION_STRING}"
-    sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
+    files = [VERSION_FILE.inspect]
+    if Rake::Task[:gemspec]
+      Rake::Task[:gemspec].invoke
+      files << GEMSPEC_FILE.inspect
+    end
+    sh "git commit -m #{commit_msg.inspect} #{files.join(" ")}"
     sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
   end
 
@@ -122,7 +128,12 @@ namespace :version do
       f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1}.#{$2.to_i + 1}.0" })
     end
     commit_msg = "New Version: #{VERSION_STRING}"
-    sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
+    files = [VERSION_FILE.inspect]
+    if Rake::Task[:gemspec]
+      Rake::Task[:gemspec].invoke
+      files << GEMSPEC_FILE.inspect
+    end
+    sh "git commit -m #{commit_msg.inspect} #{files.join(" ")}"
     sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
   end
 
@@ -133,7 +144,12 @@ namespace :version do
       f.write(VERSION_STRING.sub!(/^(\d+)\.(\d+)\.(\d+)$/) { |s| "#{$1.to_i + 1}.0.0" })
     end
     commit_msg = "New Version: #{VERSION_STRING}"
-    sh "git commit -m #{commit_msg.inspect} #{(VERSION_FILE).to_s.inspect}"
+    files = [VERSION_FILE.inspect]
+    if Rake::Task[:gemspec]
+      Rake::Task[:gemspec].invoke
+      files << GEMSPEC_FILE.inspect
+    end
+    sh "git commit -m #{commit_msg.inspect} #{files.join(" ")}"
     sh "git checkout -- #{(VERSION_FILE).to_s.inspect}"
   end
 end
