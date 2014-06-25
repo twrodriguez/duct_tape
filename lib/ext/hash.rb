@@ -45,10 +45,14 @@ class Hash
   alias_method :&, :select_keys
 
   def select_keys!(other, &block)
-    type_assert(other, Array, Hash)
     unless block_given?
+      type_assert(other, Array, Hash, Regexp)
       other = other.keys if Hash === other
-      block = proc { |k| other.include?(k) }
+      if Regexp === other
+        block = proc { |k| other === k }
+      else
+        block = proc { |k| other.include?(k) }
+      end
     end
     self.reject! { |key,val| !block[key] }
   end
@@ -61,10 +65,14 @@ class Hash
   alias_method :-, :reject_keys
 
   def reject_keys!(other, &block)
-    type_assert(other, Array, Hash)
     unless block_given?
+      type_assert(other, Array, Hash, Regexp)
       other = other.keys if Hash === other
-      block = proc { |k| other.include?(k) }
+      if Regexp === other
+        block = proc { |k| other === k }
+      else
+        block = proc { |k| other.include?(k) }
+      end
     end
     self.reject! { |key,val| block[key] }
   end
