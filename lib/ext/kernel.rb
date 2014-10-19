@@ -153,22 +153,23 @@ module Kernel
 
     # Mac Miner
     mac_miner = lambda do
-      version = `sw_vers -productVersion`.match(/\d+\.\d+\.\d+/)[0]
+      version = `sw_vers -productVersion`.match(/\d+\.\d+(?:\.\d+)?/)[0]
       @@os_features.merge!({
         :platform => "darwin",
         :os_distro => "Mac OSX",
         :os_version => version,
-        :os_nickname => case version
-          when /^10\.0\./; "Cheetah"
-          when /^10\.1\./; "Puma"
-          when /^10\.2\./; "Jaguar"
-          when /^10\.3\./; "Panther"
-          when /^10\.4\./; "Tiger"
-          when /^10\.5\./; "Leopard"
-          when /^10\.6\./; "Snow Leopard"
-          when /^10\.7\./; "Lion"
-          when /^10\.8\./; "Mountain Lion"
-          when /^10\.9\./; "Mavericks"
+        :os_nickname => case version.split(".")[0..1].join(".")
+          when "10.0";  "Cheetah"
+          when "10.1";  "Puma"
+          when "10.2";  "Jaguar"
+          when "10.3";  "Panther"
+          when "10.4";  "Tiger"
+          when "10.5";  "Leopard"
+          when "10.6";  "Snow Leopard"
+          when "10.7";  "Lion"
+          when "10.8";  "Mountain Lion"
+          when "10.9";  "Mavericks"
+          when "10.10"; "Yosemite"
           else; "Unknown Version of OSX"
         end,
         :install_method => "install",
