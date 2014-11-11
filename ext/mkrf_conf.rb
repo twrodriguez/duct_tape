@@ -1,6 +1,7 @@
 require 'rbconfig'
 #require 'bundler'
 
+puts $:
 system("bundle install --system --without development")
 
 =begin
