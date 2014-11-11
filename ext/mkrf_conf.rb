@@ -1,5 +1,5 @@
 require 'rbconfig'
-require 'bundler'
+#require 'bundler'
 
 system("bundle install --system --without development")
 
