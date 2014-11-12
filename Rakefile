@@ -12,7 +12,6 @@ Jeweler::Tasks.new do |gem|
   gem.email = ["tw.rodriguez@gmail.com"]
   gem.homepage = "http://github.com/twrodriguez/duct_tape"
   gem.authors = ["Tim Rodriguez"]
-  gem.extensions = 'ext/mkrf_conf.rb'
   gem.required_ruby_version = '>= 1.8.7'
   gem.license = 'Simplified BSD'
   gem.version = VERSION_STRING

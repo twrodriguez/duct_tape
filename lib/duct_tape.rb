@@ -85,9 +85,10 @@ require 'facets/uri'
 
 Dir[__DIR__("ext", "*.rb")].each { |f| require f }
 
-if gem_installed?('algorithms')
+begin
   require 'algorithms'
   automatic_require "algorithms"
+rescue LoadError
 end
 
 automatic_require

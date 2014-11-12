@@ -1,8 +1,7 @@
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     addressable (2.3.6)
-    algorithms (0.6.1)
     backports (3.6.0)
     builder (3.2.2)
     descendants_tracker (0.0.4)
@@ -74,7 +73,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  algorithms
   backports
   bundler
   facets (>= 2.9.3)

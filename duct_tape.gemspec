@@ -3,7 +3,6 @@
 # Instead, edit Jeweler::Tasks in Rakefile, and run 'rake gemspec'
 # -*- encoding: utf-8 -*-
 # stub: duct_tape 0.4.6 ruby lib
-# stub: ext/mkrf_conf.rb
 
 Gem::Specification.new do |s|
   s.name = "duct_tape"
@@ -12,10 +11,9 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Tim Rodriguez"]
-  s.date = "2014-11-11"
+  s.date = "2014-11-12"
   s.description = "A general-purpose utility library for Ruby"
   s.email = ["tw.rodriguez@gmail.com"]
-  s.extensions = ["ext/mkrf_conf.rb"]
   s.extra_rdoc_files = [
     "LICENSE",
     "README.md"
@@ -29,7 +27,6 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "duct_tape.gemspec",
-    "ext/mkrf_conf.rb",
     "lib/algorithms/containers.rb",
     "lib/algorithms/containers/heap.rb",
     "lib/algorithms/containers/priority_queue.rb",
