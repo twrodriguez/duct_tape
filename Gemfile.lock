@@ -75,7 +75,7 @@ PLATFORMS
 DEPENDENCIES
   backports
   bundler
-  facets (>= 2.9.3)
+  facets (~> 2.9.3)
   jeweler
   rake
   rspec

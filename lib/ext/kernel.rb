@@ -447,6 +447,7 @@ module Kernel
       cmds = [
         %<free -ob %s | grep "Mem:" | awk '{print $2}'>, # Linux
         %<sysctl -a %s | grep hw.physmem>, # FreeBSD, Mac OSX
+        %<sysctl -a %s | grep hw.memsize>, # Mac OSX Yosemite
         %<sysinfo %s | grep -i "bytes\\s*free" | grep -o "[0-9]*)" | grep -o "[0-9]*">, # Haiku
         %<top -d1 -q %s | grep "Mem" | awk '{print $2}'>, # Solaris
         %<systeminfo %s | findstr /C:"Total Physical Memory">, # Windows

@@ -10,6 +10,6 @@ group :development do
 end
 
 #gem 'algorithms', :platforms => :ruby
-gem "facets", ">=2.9.3"
+gem "facets", "~>2.9.3"
 gem "backports"
 gem "bundler"

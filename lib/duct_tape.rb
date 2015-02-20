@@ -14,7 +14,10 @@ require 'facets/regexp'
 #########################################
 # Can't require facets/string directly because there are no guards
 # against re-defining certain functions
-require 'facets/kernel/require_relative'
+begin
+  require 'facets/kernel/require_relative'
+rescue LoadError
+end
 
 require 'facets/string/acronym.rb'
 require 'facets/string/align.rb'
