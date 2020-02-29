@@ -46,7 +46,7 @@ GEM
       multi_xml (~> 0.5)
       rack (~> 1.2)
     rack (1.6.12)
-    rake (10.3.2)
+    rake (12.3.3)
     rdoc (4.1.1)
       json (~> 1.4)
     rspec (3.0.0)
